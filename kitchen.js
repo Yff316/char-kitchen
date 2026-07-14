@@ -1,7 +1,7 @@
 window.RochePlugin.register({
 id:"char-kitchen",
 name:"给 Char 炒菜的厨房",
-version:"4.4.0",
+version:"4.5.0",
 apps:[{
 id:"char-kitchen-home",
 name:"Char 的厨房",
@@ -167,6 +167,7 @@ const S = {
   cabinetOpen:false,
   catOpen:{"肉类":true,"蔬菜":true,"水果":false,"主食":false,"蛋点":false,"饮品":false,"怪东西":false,"自定义":true},
   theme:(await roche.storage.get("theme")) || (isLateNight?"night":"warm"),
+  paddingTop:(await roche.storage.get("paddingTop")) || 0, // 新增：顶部安全距离
   chatWith:null, chatLog:[], cravingBanner:null, pendingDish:null,
   
   // 存储状态
@@ -211,7 +212,7 @@ style.textContent=`
 .ck{--bg:#fff7ec;--ink:#3a2a1a;--acc:#e8863b;--card:#fff;
   position:fixed;inset:0;background:var(--bg);color:var(--ink);
   font-family:system-ui,'PingFang SC',sans-serif;
-  display:flex;flex-direction:column;overflow:hidden;}
+  display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;}
 .ck-top{display:flex;justify-content:space-between;align-items:center;
   padding:10px 16px;font-weight:700;border-bottom:1px solid rgba(0,0,0,.05);flex-shrink:0;}
 .ck-close{border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--ink);}
@@ -365,6 +366,7 @@ function applyTheme(){
   root.style.setProperty("--acc",t.acc);
   root.style.setProperty("--card",t.card);
   root.setAttribute("data-theme",S.theme);
+  root.style.paddingTop = S.paddingTop + "px"; // 顶部安全距离
 }
 function nav(){
   container.querySelectorAll("#ckNav button").forEach(b=>{
@@ -1139,6 +1141,13 @@ function renderSet(el){
   const total=Object.keys(ACHIEVEMENTS).length;
   const got=Object.keys(S.achievements).length;
   el.innerHTML=`
+    <div class="h"><span>📐 顶部安全区（防遮挡）</span></div>
+    <div class="card" style="display:flex;align-items:center;gap:10px;padding:12px 16px;">
+      <span style="font-size:12px;color:#888;">0</span>
+      <input type="range" id="ptRange" min="0" max="100" value="${S.paddingTop}" style="flex:1;accent-color:var(--acc);">
+      <span style="font-size:12px;color:#888;width:36px;text-align:right;" id="ptVal">${S.paddingTop}px</span>
+    </div>
+
     <div class="h"><span>🎨 主题${isLateNight?"（深夜自动切 night）":""}</span></div>
     <div class="row">${Object.keys(THEMES).map(k=>`<div class="chip ${S.theme===k?"on":""}" data-th="${k}">${k}</div>`).join("")}</div>
 
@@ -1172,6 +1181,17 @@ function renderSet(el){
       <button class="btn ghost" id="clrAch"  style="color:#c33;border-color:#c33;">重置成就</button>
       <button class="btn ghost" id="wipeAll" style="color:#c33;border-color:#c33;">清空全部厨房数据</button>
     </div>`;
+
+  const ptRange = el.querySelector("#ptRange");
+  const ptVal = el.querySelector("#ptVal");
+  ptRange.oninput = (e) => {
+    S.paddingTop = +e.target.value;
+    ptVal.textContent = S.paddingTop + "px";
+    root.style.paddingTop = S.paddingTop + "px";
+  };
+  ptRange.onchange = async () => {
+    await roche.storage.set("paddingTop", S.paddingTop);
+  };
 
   el.querySelectorAll("[data-th]").forEach(b=>b.onclick=async()=>{
     S.theme=b.dataset.th;

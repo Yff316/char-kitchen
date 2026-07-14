@@ -1,7 +1,7 @@
 window.RochePlugin.register({
 id:"char-kitchen",
 name:"给 Char 炒菜的厨房",
-version:"4.3.0",
+version:"4.4.0",
 apps:[{
 id:"char-kitchen-home",
 name:"Char 的厨房",
@@ -52,20 +52,20 @@ const POTS = [
 ];
 const TOOLS = [{id:"spatula",name:"锅铲"},{id:"ladle",name:"汤勺"}];
 const THEMES = {
-  warm:{bg:"#fff7ec",ink:"#3a2a1a",acc:"#e8863b",card:"#fff"},
-  night:{bg:"#161a2e",ink:"#e8ecff",acc:"#ffb86b",card:"#232842"},
-  mint:{bg:"#eefaf3",ink:"#233a30",acc:"#3fb27f",card:"#fff"},
-  pink:{bg:"#fff2f6",ink:"#40202c",acc:"#e668a0",card:"#fff"},
+  warm:{bg:"#fff7ec",ink:"#3a2a1a",acc:"#e8863b",card:"#fff",loader:"🍙"},
+  night:{bg:"#161a2e",ink:"#e8ecff",acc:"#ffb86b",card:"#232842",loader:"🍘"},
+  mint:{bg:"#eefaf3",ink:"#233a30",acc:"#3fb27f",card:"#fff",loader:"🍡"},
+  pink:{bg:"#fff2f6",ink:"#40202c",acc:"#e668a0",card:"#fff",loader:"🍣"},
 };
 
-/* ============ 64 条成就 ============ */
+/* ============ 成就系统 ============ */
 const HIDDEN_IDS = new Set([
   "cabinet_open","all_theme","reset_ach","wipe_all","konami",
   "single_ingredient","only_spice","big_dish","dark_at_midnight",
-  "reactions_all","char_all_fed","late_night_open"
+  "reactions_all","char_all_fed","late_night_open","seven_days"
 ]);
 const ACHIEVEMENTS = {
-  // —— 基础厨艺 12 ——
+  // —— 基础厨艺 ——
   first_cook:      {icon:"👨‍🍳",name:"第一次下厨",  desc:"完成第一道菜"},
   ten_dishes:      {icon:"📚", name:"厨神修行",    desc:"菜谱累计 10 道菜"},
   thirty_dishes:   {icon:"📗", name:"食谱学徒",    desc:"菜谱累计 30 道菜"},
@@ -78,8 +78,8 @@ const ACHIEVEMENTS = {
   max_fire:        {icon:"🔥", name:"猛火大师",    desc:"用猛火出锅一次"},
   low_fire:        {icon:"🕯", name:"文火慢炖",    desc:"用小火出锅一次"},
   toss_master:     {icon:"🥢", name:"颠勺达人",    desc:"累计颠勺 20 次"},
-
-  // —— 进阶厨艺 6 ——
+  
+  // —— 进阶厨艺 ——
   toss_hundred:    {icon:"💫", name:"颠勺宗师",    desc:"累计颠勺 100 次"},
   wok_ten:         {icon:"🥘", name:"炒锅专家",    desc:"用炒锅出锅 10 道菜"},
   flat_ten:        {icon:"🍳", name:"煎锅专家",    desc:"用平底锅出锅 10 道菜"},
@@ -87,7 +87,7 @@ const ACHIEVEMENTS = {
   ingredient_master:{icon:"🌈",name:"食材大师",   desc:"累计用过 30 种不同食材"},
   spice_junkie:    {icon:"⚗️",name:"调料狂魔",   desc:"单次使用 5 种以上调料"},
 
-  // —— 黑暗料理线 10 ——
+  // —— 黑暗料理线 ——
   dark_master:     {icon:"☠️", name:"绝命毒师",    desc:"第一次制作黑暗料理"},
   dark_five:       {icon:"🧟", name:"深渊厨师",    desc:"累计做出 5 道黑暗料理"},
   dark_ten:        {icon:"👹", name:"克苏鲁的呼唤",desc:"累计做出 10 道黑暗料理"},
@@ -99,7 +99,7 @@ const ACHIEVEMENTS = {
   seafood_fruit:   {icon:"🍤", name:"禁忌搭配",    desc:"海鲜和水果同锅"},
   all_dark_emojis: {icon:"👺", name:"深渊图鉴",    desc:"6 种怪东西全部用过"},
 
-  // —— 时间线 6 ——
+  // —— 时间线 ——
   midnight:        {icon:"🌙", name:"深夜食堂",    desc:"在深夜炒出一道菜"},
   midnight_ten:    {icon:"🦉", name:"夜猫子厨师",  desc:"深夜累计做出 10 道菜"},
   midnight_thirty: {icon:"🌌", name:"永夜料理人",  desc:"深夜累计做出 30 道菜"},
@@ -107,7 +107,7 @@ const ACHIEVEMENTS = {
   lunch_chef:      {icon:"🌞", name:"午间小炒",    desc:"中午 11-13 点做一道菜"},
   dinner_chef:     {icon:"🌇", name:"晚餐时刻",    desc:"傍晚 17-19 点做一道菜"},
 
-  // —— Char 投喂 12 ——
+  // —— Char 投喂 ——
   feed_first:      {icon:"🥄", name:"第一次投喂",  desc:"投喂 Char 一次"},
   feed_ten:        {icon:"💝", name:"喂养大师",    desc:"累计投喂 10 次"},
   feed_thirty:     {icon:"🍽", name:"专属厨师",    desc:"累计投喂 30 次"},
@@ -121,39 +121,38 @@ const ACHIEVEMENTS = {
   gift_first:      {icon:"🎁", name:"心意送达",    desc:"第一次送菜给 Char"},
   gift_ten:        {icon:"💐", name:"礼物大师",    desc:"累计送菜 10 次"},
 
-  // —— 反应收集 6 ——
+  // —— 反应收集 ——
   refused:         {icon:"🙅", name:"美食受害者",  desc:"被 Char 拒绝一次"},
   loved:           {icon:"💖", name:"珍藏级",      desc:"Char 说要珍藏起来"},
   spat_out:        {icon:"🤮", name:"精神污染",    desc:"Char 被你的菜吐出来"},
   smashed:         {icon:"💥", name:"打翻现场",    desc:"Char 把菜打翻了"},
   one_bite:        {icon:"👅", name:"浅尝辄止",    desc:"Char 只尝了一口"},
-  reactions_all:   {icon:"🎭", name:"情绪调色盘",  desc:"收集 5 种不同反应（隐藏）"},
+  reactions_all:   {icon:"🎭", name:"情绪调色盘",  desc:"收集 5 种不同反应(隐藏)"},
 
-  // —— 记忆 4 ——
+  // —— 记忆 & 自定义 ——
   memory_saved:    {icon:"💭", name:"记忆保管员",  desc:"第一次把投喂记忆写入 Char"},
   memory_ten:      {icon:"🧠", name:"记忆缝纫师",  desc:"写入 10 段投喂记忆"},
   memory_thirty:   {icon:"📿", name:"往事编年史",  desc:"写入 30 段投喂记忆"},
-  char_all_fed:    {icon:"🌍", name:"雨露均沾",    desc:"投喂过 5 位不同 Char（隐藏）"},
-
-  // —— 自定义 4 ——
+  char_all_fed:    {icon:"🌍", name:"雨露均沾",    desc:"投喂过 5 位不同 Char(隐藏)"},
   custom_first:    {icon:"🖼", name:"食材创造者",  desc:"添加第一个自定义食材"},
   custom_ten:      {icon:"🧑‍🎨",name:"食材艺术家", desc:"自定义食材达到 10 个"},
   custom_thirty:   {icon:"🎨", name:"食材宇宙",    desc:"自定义食材达到 30 个"},
   custom_in_dish:  {icon:"✨", name:"独一无二",    desc:"用自定义食材做出一道菜"},
 
-  // —— 隐藏彩蛋 12 ——
-  cabinet_open:    {icon:"🗝", name:"打开柜子的人",desc:"打开一次稀有调料柜"},
-  all_theme:       {icon:"🎨", name:"色彩收藏家",  desc:"切换过全部 4 个主题"},
-  reset_ach:       {icon:"🔄", name:"从头开始",    desc:"重置过一次成就"},
-  wipe_all:        {icon:"🗑", name:"厨房焚毁",    desc:"清空过全部厨房数据"},
-  single_ingredient:{icon:"☝",name:"孤勇者",     desc:"只用一种食材出锅"},
-  only_spice:      {icon:"🧂", name:"调料汤",      desc:"只放调料没有食材出锅"},
-  big_dish:        {icon:"🍜", name:"满汉全席",    desc:"一次放入 10 种以上食材"},
-  dark_at_midnight:{icon:"🕯", name:"午夜黑弥撒",  desc:"深夜炒出一道黑暗料理"},
+  // —— 隐藏彩蛋 ——
+  cabinet_open:    {icon:"🗝", name:"打开柜子的人",desc:"打开一次稀有调料柜(隐藏)"},
+  all_theme:       {icon:"🎨", name:"色彩收藏家",  desc:"切换过全部 4 个主题(隐藏)"},
+  reset_ach:       {icon:"🔄", name:"从头开始",    desc:"重置过一次成就(隐藏)"},
+  wipe_all:        {icon:"🗑", name:"厨房焚毁",    desc:"清空过全部厨房数据(隐藏)"},
+  single_ingredient:{icon:"☝",name:"孤勇者",     desc:"只用一种食材出锅(隐藏)"},
+  only_spice:      {icon:"🧂", name:"调料汤",      desc:"只放调料没有食材出锅(隐藏)"},
+  big_dish:        {icon:"🍜", name:"满汉全席",    desc:"一次放入 10 种以上食材(隐藏)"},
+  dark_at_midnight:{icon:"🕯", name:"午夜黑弥撒",  desc:"深夜炒出一道黑暗料理(隐藏)"},
   konami:          {icon:"🕹", name:"???",         desc:"???"},
-  late_night_open: {icon:"🦇", name:"夜半来客",    desc:"深夜时段打开厨房"},
+  late_night_open: {icon:"🦇", name:"夜半来客",    desc:"深夜时段打开厨房(隐藏)"},
   flambe_master:   {icon:"🔥", name:"焰火表演",    desc:"使用威士忌 flambé"},
   mystic_trio:     {icon:"🔮", name:"三位一体",    desc:"同时使用神秘药+试剂+骨头"},
+  seven_days:      {icon:"📅", name:"常客",        desc:"连续 7 天使用厨房(隐藏)"},
 };
 
 /* ============ 状态 ============ */
@@ -169,6 +168,8 @@ const S = {
   catOpen:{"肉类":true,"蔬菜":true,"水果":false,"主食":false,"蛋点":false,"饮品":false,"怪东西":false,"自定义":true},
   theme:(await roche.storage.get("theme")) || (isLateNight?"night":"warm"),
   chatWith:null, chatLog:[], cravingBanner:null, pendingDish:null,
+  
+  // 存储状态
   achievements:(await roche.storage.get("achievements"))||{},
   spiceUsed:new Set((await roche.storage.get("spiceUsed"))||[]),
   potUsed:new Set((await roche.storage.get("potUsed"))||[]),
@@ -184,9 +185,24 @@ const S = {
   potDishCount:(await roche.storage.get("potDishCount"))||{wok:0,flat:0,pressure:0},
   reactionSet:new Set((await roche.storage.get("reactionSet"))||[]),
   themesUsed:new Set((await roche.storage.get("themesUsed"))||[]),
+  lastCookDate:(await roche.storage.get("lastCookDate"))||"",
+  consecutiveCookDays:(await roche.storage.get("consecutiveCookDays"))||0,
   achOpen:true,
   konamiSeq:[],
 };
+
+// 渲染 Emoji 辅助函数：如果是自定义图片，会返回真实 <img/> 标签，否则返回 emoji
+function renderEmo(e, size=26){
+  if(e.startsWith("::")){
+    const c = S.custom.find(x => x.id === e.slice(2));
+    if(c){
+      if(c.image) return `<img src="${c.image}" style="width:${size}px;height:${size}px;object-fit:cover;vertical-align:text-bottom;display:inline-block;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.2);">`;
+      return c.emoji || "🖼";
+    }
+    return "🖼";
+  }
+  return e;
+}
 
 /* ============ 样式 ============ */
 const style=document.createElement("style");
@@ -276,7 +292,7 @@ style.textContent=`
 .card.dark{background:linear-gradient(135deg,#1a1023,#2a1035);color:#e8c8ff;
   border:1px solid #6a2a8a;box-shadow:0 0 16px rgba(140,60,200,.3);}
 .card.dark .tag{background:rgba(255,255,255,.08);color:#c8a8e8;}
-.dish-emo{font-size:26px;letter-spacing:2px;}
+.dish-emo{font-size:26px;letter-spacing:2px;line-height:30px;}
 .dish-name{font-weight:700;font-size:15px;margin:4px 0;}
 .tag{display:inline-block;background:rgba(0,0,0,.06);padding:2px 8px;border-radius:10px;
   font-size:11px;margin:2px 4px 2px 0;color:#666;}
@@ -308,7 +324,7 @@ style.textContent=`
 .chat-head img{width:56px;height:56px;border-radius:50%;object-fit:cover;}
 .chat-head .info{flex:1;}
 .chat-head .name{font-weight:700;font-size:15px;}
-.chat-head .sub{font-size:11px;color:#888;}
+.chat-head .sub{font-size:11px;color:#888;display:flex;align-items:center;gap:2px;}
 .status-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
 .status-cell{background:var(--card);border-radius:10px;padding:8px 10px;font-size:12px;line-height:1.4;}
 .status-cell .lbl{font-size:10px;color:#999;font-weight:700;margin-bottom:2px;}
@@ -425,12 +441,13 @@ function playSpiceFx(spice){
 }
 
 /* ============ Loading / 弹窗 ============ */
-function showLoading(text, emoji="🍙"){
+function showLoading(text){
   hideLoading();
+  const loaderEmoji = THEMES[S.theme]?.loader || "🍙";
   const o=document.createElement("div");
   o.className="overlay"; o.id="ckLoading";
   o.innerHTML=`<div class="loader-box">
-    <div class="spinner">${emoji}</div>
+    <div class="spinner">${loaderEmoji}</div>
     <div class="loader-text">${text}</div>
   </div>`;
   document.body.appendChild(o);
@@ -441,7 +458,9 @@ function showCongrats(dish, dark){
     const o=document.createElement("div"); o.className="overlay";
     o.innerHTML=`<div class="congrats ${dark?"dark":""}">
       <div style="font-size:12px;letter-spacing:4px;opacity:.7;">${dark?"☠️ 黑暗料理诞生":"🎉 恭喜获得"}</div>
-      <div class="big-emo">${dish.emojis.map(e=>e.startsWith("::")?"🖼":e).join("")}</div>
+      <div class="big-emo" style="display:flex;justify-content:center;gap:4px;margin-top:10px;">
+        ${dish.emojis.map(e => renderEmo(e, 54)).join("")}
+      </div>
       <h3>${dish.name}</h3>
       <div style="font-size:13px;margin:6px 0;opacity:.85;">${dish.desc||""}</div>
       ${dish.effect?`<div style="font-size:12px;opacity:.75;">✨ ${dish.effect}</div>`:""}
@@ -491,7 +510,7 @@ function showAchievement(a){
   const o=document.createElement("div"); o.className="overlay";
   o.innerHTML=`<div class="congrats" style="background:linear-gradient(135deg,#fff5c8,#ffd76a,#e89a3c);">
     <div style="font-size:11px;letter-spacing:6px;opacity:.7;">🏆 成就解锁</div>
-    <div class="big-emo">${a.icon}</div>
+    <div class="big-emo" style="font-size:54px;">${a.icon}</div>
     <h3>${a.name}</h3>
     <div style="font-size:13px;opacity:.85;">${a.desc}</div>
     <button class="btn" style="margin-top:14px;" id="okBtn">好耶！</button>
@@ -646,7 +665,7 @@ async function cookDish(){
   if(S.fire===0) return;
   if(!S.picked.length && !S.spices.length) return;
   const dark=isDarkCombo(S.picked, S.spices);
-  showLoading(dark?"锅里发生了不祥的事…":"炒制中…", "🍙");
+  showLoading(dark?"锅里发生了不祥的事…":"炒制中…");
   const parts=[], tastes=new Set(), textures=new Set(), vibes=new Set();
   S.picked.forEach(e=>{
     if(e.startsWith("::")){
@@ -691,6 +710,22 @@ async function cookDish(){
   if(!dupe){
     S.recipes.unshift(rec);
     await roche.storage.set("recipes",S.recipes);
+
+    // 连续天数逻辑
+    const today = new Date().toLocaleDateString();
+    if (S.lastCookDate !== today) {
+      if (S.lastCookDate) {
+        const yesterday = new Date(Date.now() - 86400000).toLocaleDateString();
+        if (S.lastCookDate === yesterday) S.consecutiveCookDays++;
+        else S.consecutiveCookDays = 1;
+      } else {
+        S.consecutiveCookDays = 1;
+      }
+      S.lastCookDate = today;
+      await roche.storage.set("lastCookDate", S.lastCookDate);
+      await roche.storage.set("consecutiveCookDays", S.consecutiveCookDays);
+    }
+    if (S.consecutiveCookDays >= 7) await unlock("seven_days");
 
     // 基础
     await unlock("first_cook");
@@ -801,7 +836,10 @@ function renderBook(el){
     </div>
     ${S.recipes.map(r=>`
       <div class="card ${r.dark?"dark":""}">
-        <div class="dish-emo">${r.emojis.map(e=>e.startsWith("::")?"🖼":e).join(" ")}${r.spices?.length?" · "+r.spices.join(""):""}</div>
+        <div class="dish-emo" style="display:flex;flex-wrap:wrap;gap:2px;">
+          ${r.emojis.map(e => renderEmo(e, 26)).join("")}
+          ${r.spices?.length?"<span style='margin:0 4px;opacity:0.5;'>·</span>"+r.spices.join(""):""}
+        </div>
         <div class="dish-name">${r.dark?"☠️ ":""}${r.name}${r.midnight?' <span style="font-size:10px;color:#ffb86b;">🌙</span>':""}</div>
         <div style="font-size:13px;opacity:.85;">${r.desc||""}</div>
         <div style="margin-top:6px;">
@@ -846,7 +884,7 @@ async function giftToChar(dish){
   if(!chars.length){ roche.ui.toast("没有 Char"); return; }
   const pick=await roche.ui.select?.({title:"送给谁？",options:chars.map(c=>({label:c.handle||c.name,value:c.id}))});
   const target=chars.find(c=>c.id===(pick?.value||pick))||chars[0];
-  const text=`🎁 ${target.handle||target.name},送你【${dish.name}】\n${dish.emojis.join(" ")}\n${dish.desc||""}`;
+  const text=`🎁 ${target.handle||target.name},送你【${dish.name}】\n${dish.emojis.map(e => e.startsWith("::") ? "[图片食材]" : e).join(" ")}\n${dish.desc||""}`;
   try{
     if(roche.chat?.send) await roche.chat.send({conversationId:target.conversationId,text});
     else if(roche.character?.sendMessage) await roche.character.sendMessage({charId:target.id,text});
@@ -866,7 +904,10 @@ async function renderFeed(el){
   let chars=[]; try{ chars=await roche.character.list(); }catch{}
   const dish=S.pendingDish;
   el.innerHTML=`
-    ${dish?`<div class="card"><div class="dish-emo">${dish.emojis.join(" ")}</div><div class="dish-name">🥄 准备投喂：${dish.name}</div></div>`
+    ${dish?`<div class="card">
+        <div class="dish-emo" style="display:flex;gap:4px;">${dish.emojis.map(e => renderEmo(e, 26)).join("")}</div>
+        <div class="dish-name">🥄 准备投喂：${dish.name}</div>
+      </div>`
       :`<div style="text-align:center;color:#aaa;padding:20px;">先在【菜谱】选一道菜点【投喂】</div>`}
     <div class="h"><span>选一位 Char</span></div>
     ${chars.length?chars.map(c=>`
@@ -881,12 +922,12 @@ async function renderFeed(el){
   });
 }
 async function feedToChar(dish, char){
-  showLoading(`把 ${dish.name} 递给 ${char.handle||char.name}…`, "🍙");
+  showLoading(`把 ${dish.name} 递给 ${char.handle||char.name}…`);
   let payload={eaten:"吃了", mood:"平静", inner:"…", feeling:"这是一道菜。"};
   try{
     const res=await roche.ai.chat({messages:[
-      {role:"system",content:`你扮演角色「${char.name||char.handle}」。人设：${char.persona||char.bio||""}\nuser 端了一道${dish.dark?"看起来非常诡异的黑暗":""}料理给你。请严格输出 JSON：{"eaten":"","mood":"","inner":"","feeling":""}\n- eaten：吃没吃（例：吃了 / 只尝了一口 / 拒绝了 / 打翻了 / 珍藏起来 / 吐出来了）\n- mood：现在的心情（一两个词）\n- inner：心声 1-2 句\n- feeling：吃后感受/评价 1-2 句`},
-      {role:"user",content:`菜名：${dish.name}${dish.dark?"(⚠️ 黑暗料理)":""}\n${dish.desc||""}\n味:${dish.taste} 感:${dish.texture} 氛:${dish.vibe}`}
+      {role:"system",content:`你扮演角色「${char.name||char.handle}」。人设：${char.persona||char.bio||""}\nuser 亲手为你炒了一道${dish.dark?"看起来非常诡异的黑暗":""}料理，端给了你。请严格按照人设和料理的情况输出 JSON：{"eaten":"","mood":"","inner":"","feeling":""}\n- eaten：吃没吃（例：吃了 / 只尝了一口 / 拒绝了 / 打翻了 / 珍藏起来 / 吐出来了）\n- mood：现在的心情（一两个词）\n- inner：心声 1-2 句\n- feeling：吃后感受/评价 1-2 句\n【重要】请记住这绝对是 user 在厨房里亲手为你做的，不要说这不是 user 做的！如果菜品有[特殊效果]，请根据你的性格在 inner 或 feeling 里自然地做出吐槽或赞美的反应。`},
+      {role:"user",content:`菜名：${dish.name}${dish.dark?"(⚠️ 黑暗料理)":""}\n${dish.desc||""}\n味:${dish.taste} 感:${dish.texture} 氛:${dish.vibe}\n特殊效果：${dish.effect||"无"}`}
     ],temperature:1.0});
     const m=(res.text||"").match(/\{[\s\S]*\}/);
     if(m) Object.assign(payload, JSON.parse(m[0]));
@@ -941,7 +982,7 @@ function renderChatPage(el){
       ${char.avatar?`<img src="${char.avatar}">`:`<div style="width:56px;height:56px;border-radius:50%;background:#ddd;"></div>`}
       <div class="info">
         <div class="name">${char.handle||char.name}</div>
-        <div class="sub">吃了：【${dish.name}】 ${dish.emojis.slice(0,3).join("")}</div>
+        <div class="sub">吃了：【${dish.name}】 ${dish.emojis.slice(0,3).map(e => renderEmo(e, 16)).join("")}</div>
       </div>
       <button class="btn ghost" id="chatDone">结束投喂</button>
     </div>
@@ -972,7 +1013,7 @@ async function sendChat(el){
   try{
     const {char, dish}=S.chatWith;
     const res=await roche.ai.chat({messages:[
-      {role:"system",content:`你扮演「${char.name||char.handle}」。人设：${char.persona||char.bio||""}\n刚吃了「${dish.name}」${dish.dark?"（一道黑暗料理）":""}，继续和 user 聊天，保持角色语气。`},
+      {role:"system",content:`你扮演「${char.name||char.handle}」。人设：${char.persona||char.bio||""}\n刚才你吃了 user 亲手为你制作的「${dish.name}」${dish.dark?"（一道黑暗料理）":""}，它的特殊效果是：${dish.effect||"无"}。请继续和 user 聊天，保持角色语气，记住这是 user 亲手为你做的。`},
       ...S.chatLog.map(m=>({role:m.role,content:m.text}))
     ],temperature:0.9});
     S.chatLog.push({role:"assistant",text:res.text||"..."});
@@ -981,11 +1022,11 @@ async function sendChat(el){
 }
 async function onChatDone(){
   const {char, dish}=S.chatWith;
-  showLoading(`${char.handle||char.name} 想说点什么…`, "🍙");
+  showLoading(`${char.handle||char.name} 想说点什么…`);
   let finalWords="（Ta 抬眼看了看你，没说话。）";
   try{
     const res=await roche.ai.chat({messages:[
-      {role:"system",content:`你扮演「${char.name||char.handle}」。人设：${char.persona||char.bio||""}\n你刚吃了 user 做的「${dish.name}」并聊了一会儿。现在 user 要结束投喂了，请用角色语气写一段"结束感想"（2-3 句）。不要引号。`},
+      {role:"system",content:`你扮演「${char.name||char.handle}」。人设：${char.persona||char.bio||""}\n你刚吃了 user 亲手为你做的「${dish.name}」并聊了一会儿。现在 user 要结束投喂了，请用角色语气写一段"结束感想"（2-3 句）。不要引号。`},
       {role:"user",content:S.chatLog.map(m=>`${m.role}:${m.text}`).join("\n")}
     ],temperature:0.9});
     finalWords=(res.text||"").trim()||finalWords;
@@ -994,7 +1035,7 @@ async function onChatDone(){
   await roche.ui.confirm({title:`${char.handle||char.name} 的结束感想`, message:finalWords});
   const wantSum=await roche.ui.confirm({title:"总结这段投喂记忆？", message:"要把这次投喂+对话总结成一段记忆吗？"});
   if(wantSum){
-    showLoading("正在总结记忆…", "🍙");
+    showLoading("正在总结记忆…");
     let text=`${char.handle||char.name} 被 user 投喂了「${dish.name}」`;
     try{
       const sum=await roche.ai.chat({messages:[
@@ -1109,7 +1150,7 @@ function renderSet(el){
       ${Object.entries(ACHIEVEMENTS).map(([id,a])=>{
         const g=S.achievements[id];
         const hide=HIDDEN_IDS.has(id)&&!g;
-        return `<div class="card" style="text-align:center;padding:10px 6px;margin:0;${g?"":"opacity:.35;filter:grayscale(1);"}">
+        return `<div class="card" style="text-align:center;padding:10px 6px;margin:0;${g?"":"opacity:.35;filter:grayscale(1);"}" title="${hide?"未知的秘密":a.desc}">
           <div style="font-size:28px;">${g?a.icon:"🔒"}</div>
           <div style="font-size:12px;font-weight:700;margin-top:4px;">${hide?"???":a.name}</div>
           <div style="font-size:10px;color:#888;line-height:1.3;">${hide?"隐藏成就":a.desc}</div>
@@ -1121,7 +1162,7 @@ function renderSet(el){
     <div class="card" style="font-size:13px;line-height:1.8;">
       菜谱：${S.recipes.length} 条<br>投喂：${S.feeds.length} 条<br>
       自定义食材：${S.custom.length} 个（其中带图 ${S.custom.filter(c=>c.image).length} 个）<br>
-      颠勺：${S.tossCount||0} 次｜黑暗料理：${S.darkCount||0} 道
+      连续天数：${S.consecutiveCookDays||0} 天｜黑暗料理：${S.darkCount||0} 道
     </div>
 
     <div class="h"><span>☠️ 危险区</span></div>

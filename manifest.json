@@ -1,0 +1,17 @@
+{
+  "id": "char-kitchen",
+  "name": "给 Char 炒菜的厨房",
+  "version": "1.0.0",
+  "description": "点 emoji 食材合成料理，投喂给 Char 并获取评价，自动总结投喂记忆。",
+  "author": "fritztita92",
+  "entry": "https://raw.githubusercontent.com/你的用户名/char-kitchen/main/kitchen.js",
+  "hash": "",
+  "permissions": [
+    "character:read",
+    "memory:read",
+    "memory:write",
+    "ai:chat",
+    "storage",
+    "ui"
+  ]
+}

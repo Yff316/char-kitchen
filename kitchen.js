@@ -1,753 +1,822 @@
 window.RochePlugin.register({
-  id: "char-kitchen",
-  name: "给 Char 炒菜的厨房",
-  version: "3.0.0",
-  apps: [{
-    id: "char-kitchen-home",
-    name: "Char 的厨房",
-    icon: "restaurant",
-    async mount(container, roche) {
+id:"char-kitchen", name:"给 Char 炒菜的厨房", version:"4.0.0",
+apps:[{ id:"char-kitchen-home", name:"Char 的厨房", icon:"restaurant",
+async mount(container, roche){
 
-    /* ============ 数据 ============ */
-    const FRIDGE = {
-      "肉类":["🥩","🍗","🍖","🥓","🍤","🦑","🦐","🦀","🐟","🦞","🥚"],
-      "蔬菜":["🥬","🥒","🍆","🥦","🥕","🥔","🌽","🍠","🍄","🌶️","🧄","🧅","🫑","🥗"],
-      "水果":["🍎","🍏","🍊","🍋","🍑","🍒","🍓","🍈","🍉","🍇","🥭","🥝","🍌","🍐","🍍","🥥"],
-      "主食":["🍚","🍞","🍜","🍝","🥖","🥐","🥯","🥟","🍙","🍘","🌮","🌯","🥙","🥞"],
-      "蛋点":["🍰","🎂","🧁","🍮","🍩","🍪","🍫","🍬","🍭","🍦","🍨","🍧"],
-      "饮品":["🥛","🧃","☕","🍵","🧉","🍹","🍸","🍷","🍺","🥤"],
-    };
-    // 每种调料自己的特效配置
-    const SPICE_FX = {
-      "🧂":{cls:"fx-salt",  name:"盐",     particle:"·",  color:"#fff"},
-      "🌶️":{cls:"fx-chili", name:"辣椒",   particle:"~",  color:"#e63b1e"},
-      "🍯":{cls:"fx-honey", name:"蜂蜜",   particle:"◉",  color:"#e8a13b"},
-      "🧈":{cls:"fx-butter",name:"黄油",   particle:"◐",  color:"#ffe08a"},
-      "🫒":{cls:"fx-olive", name:"橄榄油", particle:"◎",  color:"#7ab648"},
-      "🥫":{cls:"fx-tomato",name:"番茄酱", particle:"●",  color:"#d33"},
-      "🧄":{cls:"fx-garlic",name:"蒜",     particle:"■",  color:"#f5f0dc"},
-      "🍶":{cls:"fx-sake",  name:"料酒",   particle:"˜",  color:"#b8d8ff"},
-      "🥃":{cls:"fx-whisky",name:"威士忌", particle:"🔥", color:"#d99a3a"},
-      "💊":{cls:"fx-magic", name:"神秘药", particle:"✦",  color:"#b06bff"},
-      "🧊":{cls:"fx-ice",   name:"冰",     particle:"❄",  color:"#a8d8ff"},
-      "🌿":{cls:"fx-herb",  name:"香草",   particle:"❦",  color:"#5fb04a"},
-      "🫙":{cls:"fx-jar",   name:"罐装粉", particle:"·",  color:"#c8bfae"},
-      "⚗️":{cls:"fx-lab",   name:"试剂",   particle:"○",  color:"#6bd2c8"},
-    };
-    const SPICES_COMMON  = ["🧂","🌶️","🍯","🧈","🫒","🥫","🧄"];
-    const SPICES_CABINET = ["🍶","🥃","💊","🧊","🌿","🫙","⚗️"];
+/* ============ 数据 ============ */
+const FRIDGE = {
+  "肉类":["🥩","🍗","🍖","🥓","🍤","🦑","🦐","🦀","🐟","🦞","🥚"],
+  "蔬菜":["🥬","🥒","🍆","🥦","🥕","🥔","🌽","🍠","🍄","🌶️","🧄","🧅","🫑","🥗"],
+  "水果":["🍎","🍏","🍊","🍋","🍑","🍒","🍓","🍈","🍉","🍇","🥭","🥝","🍌","🍐","🍍","🥥"],
+  "主食":["🍚","🍞","🍜","🍝","🥖","🥐","🥯","🥟","🍙","🍘","🌮","🌯","🥙","🥞"],
+  "蛋点":["🍰","🎂","🧁","🍮","🍩","🍪","🍫","🍬","🍭","🍦","🍨","🍧"],
+  "饮品":["🥛","🧃","☕","🍵","🧉","🍹","🍸","🍷","🍺","🥤"],
+  "怪东西":["🦴","🍿","🧀","💊","🧫","🫘"],
+};
+const SPICE_FX = {
+  "🧂":{name:"盐",  p:"·",  c:"#fff",   anim:"burst"},
+  "🌶️":{name:"辣椒",p:"~",  c:"#e63b1e",anim:"burst-shake"},
+  "🍯":{name:"蜂蜜",p:"◉",  c:"#e8a13b",anim:"drip"},
+  "🧈":{name:"黄油",p:"◐",  c:"#ffe08a",anim:"halo"},
+  "🫒":{name:"橄榄油",p:"◎",c:"#7ab648",anim:"swirl"},
+  "🥫":{name:"番茄酱",p:"●",c:"#d33",  anim:"splash"},
+  "🧄":{name:"蒜",  p:"■",  c:"#f5f0dc",anim:"burst"},
+  "🍶":{name:"料酒",p:"˜",  c:"#b8d8ff",anim:"rise"},
+  "🥃":{name:"威士忌",p:"🔥",c:"#d99a3a",anim:"flambe"},
+  "💊":{name:"神秘药",p:"✦",c:"#b06bff",anim:"twinkle"},
+  "🧊":{name:"冰",  p:"❄",  c:"#a8d8ff",anim:"drop"},
+  "🌿":{name:"香草",p:"❦",  c:"#5fb04a",anim:"drop"},
+  "🫙":{name:"罐装",p:"·",  c:"#c8bfae",anim:"burst"},
+  "⚗️":{name:"试剂",p:"○",  c:"#6bd2c8",anim:"bubble"},
+};
+const SPICES_COMMON  = ["🧂","🌶️","🍯","🧈","🫒","🥫","🧄"];
+const SPICES_CABINET = ["🍶","🥃","💊","🧊","🌿","🫙","⚗️"];
+const DARK_EMOJIS = ["💊","🦴","🍿","🧀","🧫","🫘"];
+const EMOJI_META = {
+  "🥩":{t:"咸鲜",x:"扎实",v:"豪华"},"🍗":{t:"咸香",x:"多汁",v:"满足"},
+  "🥚":{t:"清淡",x:"嫩",v:"温柔"},"🥕":{t:"清甜",x:"脆",v:"营养"},
+  "🌶️":{t:"辣",x:"脆",v:"火热"},"🍅":{t:"酸",x:"多汁",v:"鲜"},
+  "🍑":{t:"甜",x:"多汁",v:"温柔"},"🍫":{t:"甜苦",x:"丝滑",v:"浪漫"},
+  "🍯":{t:"甜",x:"粘稠",v:"温暖"},"🧂":{t:"咸",x:"颗粒",v:"基础"},
+  "💊":{t:"苦",x:"硬",v:"神秘"},"🧄":{t:"辛香",x:"脆",v:"浓郁"},
+};
+const POTS=[{id:"wok",name:"炒锅",tag:"炒"},{id:"flat",name:"平底锅",tag:"煎"},{id:"pressure",name:"高压锅",tag:"汤"}];
+const TOOLS=[{id:"spatula",name:"锅铲"},{id:"ladle",name:"汤勺"}];
+const THEMES = {
+  warm:{bg:"#fff7ec",ink:"#3a2a1a",acc:"#e8863b",card:"#fff"},
+  night:{bg:"#161a2e",ink:"#e8ecff",acc:"#ffb86b",card:"#232842"},
+  mint:{bg:"#eefaf3",ink:"#233a30",acc:"#3fb27f",card:"#fff"},
+  pink:{bg:"#fff2f6",ink:"#40202c",acc:"#e668a0",card:"#fff"},
+};
 
-    const EMOJI_META = {
-      "🥩":{t:"咸鲜",x:"扎实",v:"豪华"},"🍗":{t:"咸香",x:"多汁",v:"满足"},
-      "🥚":{t:"清淡",x:"嫩",v:"温柔"},"🥕":{t:"清甜",x:"脆",v:"营养"},
-      "🌶️":{t:"辣",x:"脆",v:"火热"},"🍅":{t:"酸",x:"多汁",v:"鲜"},
-      "🍑":{t:"甜",x:"多汁",v:"温柔"},"🍫":{t:"甜苦",x:"丝滑",v:"浪漫"},
-      "🍯":{t:"甜",x:"粘稠",v:"温暖"},"🧂":{t:"咸",x:"颗粒",v:"基础"},
-      "💊":{t:"苦",x:"硬",v:"神秘"},"🧄":{t:"辛香",x:"脆",v:"浓郁"},
-    };
-    const POTS = [
-      { id:"wok", name:"炒锅", desc:"爆炒锁香", tag:"炒" },
-      { id:"flat",name:"平底锅",desc:"温和煎炒", tag:"煎" },
-      { id:"pressure",name:"高压锅",desc:"炖汤入味", tag:"汤" },
-    ];
-    const TOOLS = [{id:"spatula",name:"锅铲"},{id:"ladle",name:"汤勺"}];
-    const THEMES = {
-      warm:{bg:"#fff7ec",ink:"#3a2a1a",acc:"#e8863b",card:"#fff"},
-      night:{bg:"#161a2e",ink:"#e8ecff",acc:"#ffb86b",card:"#232842"},
-      mint:{bg:"#eefaf3",ink:"#233a30",acc:"#3fb27f",card:"#fff"},
-      pink:{bg:"#fff2f6",ink:"#40202c",acc:"#e668a0",card:"#fff"},
-    };
+/* ============ 状态 ============ */
+const hour=new Date().getHours();
+const isLateNight=(hour>=22||hour<4);
+const S = {
+  tab:"stove", pot:"wok", tool:"spatula", fire:2,
+  picked:[], spices:[],
+  recipes:(await roche.storage.get("recipes"))||[],
+  feeds:(await roche.storage.get("feedRecords"))||[],
+  custom:(await roche.storage.get("customIngredients"))||[],
+  cabinetOpen:false,
+  catOpen:{"肉类":true,"蔬菜":true,"水果":false,"主食":false,"蛋点":false,"饮品":false,"怪东西":false,"自定义":true},
+  theme:(await roche.storage.get("theme"))||(isLateNight?"night":"warm"),
+  chatWith:null, chatLog:[],
+  cravingBanner:null, pendingDish:null,
+  loading:null, // {text}
+};
 
-    /* ============ 状态 ============ */
-    const hour = new Date().getHours();
-    const isLateNight = (hour>=22 || hour<4);
-    const S = {
-      tab:"stove", pot:"wok", tool:"spatula", fire:2,
-      picked:[], spices:[],
-      spiceFxQueue:[], // 触发的特效
-      recipes: (await roche.storage.get("recipes"))||[],
-      feeds:   (await roche.storage.get("feedRecords"))||[],
-      custom:  (await roche.storage.get("customIngredients"))||[],
-      plate:[], fridgeOpen:false, cabinetOpen:false,
-      theme: (await roche.storage.get("theme")) || (isLateNight?"night":"warm"),
-      chatWith:null, chatLog:[],
-      cravingBanner:null, // Char 主动讨菜
-      pendingDish:null,
-    };
+/* ============ 样式 ============ */
+const style=document.createElement("style");
+style.setAttribute("data-plugin","char-kitchen");
+style.textContent=`
+.ck{--bg:#fff7ec;--ink:#3a2a1a;--acc:#e8863b;--card:#fff;
+  position:fixed;inset:0;background:var(--bg);color:var(--ink);
+  font-family:system-ui,'PingFang SC',sans-serif;
+  display:flex;flex-direction:column;overflow:hidden;}
+.ck-top{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 16px;font-weight:700;border-bottom:1px solid rgba(0,0,0,.05);flex-shrink:0;}
+.ck-close{border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--ink);}
+.ck-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 16px 20px;position:relative;}
+.ck-nav{height:60px;background:var(--card);display:flex;
+  box-shadow:0 -4px 20px rgba(0,0,0,.08);border-top:1px solid rgba(0,0,0,.05);flex-shrink:0;}
+.ck-nav button{flex:1;background:none;border:none;font-size:11px;color:#888;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;}
+.ck-nav button.on{color:var(--acc);font-weight:700;}
+.ck-nav .ico{font-size:20px;}
 
-    /* ============ 样式 ============ */
-    const style = document.createElement("style");
-    style.setAttribute("data-plugin","char-kitchen");
-    style.textContent = `
-    .ck{--bg:#fff7ec;--ink:#3a2a1a;--acc:#e8863b;--card:#fff;
-      position:fixed;inset:0;background:var(--bg);color:var(--ink);
-      font-family:system-ui,'PingFang SC',sans-serif;
-      display:flex;flex-direction:column;overflow:hidden;}
-    .ck-top{display:flex;justify-content:space-between;align-items:center;
-      padding:10px 16px;font-weight:700;background:var(--bg);border-bottom:1px solid rgba(0,0,0,.05);flex-shrink:0;}
-    .ck-close{border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--ink);}
-    .ck-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 16px 20px;}
-    .ck-nav{height:60px;background:var(--card);display:flex;
-      box-shadow:0 -4px 20px rgba(0,0,0,.08);border-top:1px solid rgba(0,0,0,.05);flex-shrink:0;}
-    .ck-nav button{flex:1;background:none;border:none;font-size:11px;color:#888;cursor:pointer;
-      display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;}
-    .ck-nav button.on{color:var(--acc);font-weight:700;}
-    .ck-nav .ico{font-size:20px;}
+.midnight-tag{display:inline-block;padding:2px 10px;border-radius:10px;
+  background:linear-gradient(90deg,#3a3f6b,#5a3a6b);color:#ffb86b;font-size:11px;margin-left:8px;}
+.craving{background:linear-gradient(90deg,#ffdcae,#ffb98a);padding:10px 14px;border-radius:12px;
+  margin:8px 0;cursor:pointer;display:flex;gap:10px;align-items:center;font-size:13px;
+  box-shadow:0 4px 12px rgba(232,134,59,.2);}
+.craving img{width:36px;height:36px;border-radius:50%;object-fit:cover;}
 
-    /* 讨菜横幅 */
-    .craving{background:linear-gradient(90deg,#ffdcae,#ffb98a);
-      padding:10px 14px;border-radius:12px;margin:8px 0;cursor:pointer;
-      display:flex;gap:10px;align-items:center;font-size:13px;box-shadow:0 4px 12px rgba(232,134,59,.2);}
-    .craving img{width:36px;height:36px;border-radius:50%;object-fit:cover;}
+/* 灶台 */
+.stove-fixed{position:sticky;top:0;background:var(--bg);padding:8px 0 4px;z-index:3;}
+.stove{position:relative;width:100%;max-width:340px;height:200px;margin:0 auto;
+  background:linear-gradient(180deg,#f6dfb8,#d9b878);border-radius:20px;overflow:visible;
+  box-shadow:inset 0 -6px 0 rgba(0,0,0,.08);}
+.ck[data-theme=night] .stove{background:linear-gradient(180deg,#2a2e4a,#1a1d2e);}
+.pan-holder{position:absolute;left:50%;top:40px;transform:translateX(-50%);
+  width:200px;height:80px;z-index:2;cursor:pointer;transform-origin:50% 100%;}
+.pan-holder.toss{animation:toss .7s ease;}
+@keyframes toss{0%{transform:translateX(-50%) rotate(0);}
+  30%{transform:translateX(-50%) rotate(-22deg) translateY(-18px);}
+  60%{transform:translateX(-50%) rotate(14deg) translateY(-10px);}
+  100%{transform:translateX(-50%) rotate(0);}}
+.pan-svg{width:100%;height:100%;overflow:visible;}
+.pan-food{position:absolute;inset:0;pointer-events:none;}
+.pan-food span{position:absolute;font-size:18px;transform:translate(-50%,-50%);
+  animation:bob 2s ease-in-out infinite;}
+@keyframes bob{0%,100%{transform:translate(-50%,-50%);}50%{transform:translate(-50%,-58%);}}
+.flame-holder{position:absolute;left:50%;top:90px;transform:translateX(-50%);
+  width:80px;height:100px;z-index:1;pointer-events:none;display:flex;justify-content:center;align-items:flex-start;}
 
-    /* 深夜标题 */
-    .midnight-tag{display:inline-block;padding:2px 10px;border-radius:10px;
-      background:linear-gradient(90deg,#3a3f6b,#5a3a6b);color:#ffb86b;font-size:11px;margin-left:8px;}
+.fire-ctrl{display:flex;align-items:center;justify-content:center;gap:10px;padding:6px 0;font-size:12px;}
+.fire-ctrl input[type=range]{width:180px;accent-color:var(--acc);}
 
-    /* 灶台 */
-    .stove-fixed{position:sticky;top:0;background:var(--bg);padding:8px 0 4px;z-index:3;}
-    .stove{position:relative;width:100%;max-width:340px;height:200px;margin:0 auto;
-      background:linear-gradient(180deg,#f6dfb8,#d9b878);border-radius:20px;overflow:visible;
-      box-shadow:inset 0 -6px 0 rgba(0,0,0,.08);}
-    .ck[data-theme=night] .stove{background:linear-gradient(180deg,#2a2e4a,#1a1d2e);}
-    .pan-holder{position:absolute;left:50%;top:40px;transform:translateX(-50%);
-      width:200px;height:80px;z-index:2;cursor:pointer;transform-origin:50% 100%;}
-    .pan-holder.toss{animation:toss .7s ease;}
-    @keyframes toss{
-      0%{transform:translateX(-50%) rotate(0);}
-      30%{transform:translateX(-50%) rotate(-22deg) translateY(-18px);}
-      60%{transform:translateX(-50%) rotate(14deg) translateY(-10px);}
-      100%{transform:translateX(-50%) rotate(0);}
-    }
-    .pan-svg{width:100%;height:100%;overflow:visible;}
-    .pan-food{position:absolute;inset:0;pointer-events:none;}
-    .pan-food span{position:absolute;font-size:18px;transform:translate(-50%,-50%);
-      animation:bob 2s ease-in-out infinite;}
-    @keyframes bob{0%,100%{transform:translate(-50%,-50%);}50%{transform:translate(-50%,-58%);}}
+/* 调料特效层，独立于锅 */
+.spice-fx-layer{position:fixed;pointer-events:none;z-index:9999;left:0;top:0;width:100vw;height:100vh;overflow:hidden;}
+.sp-p{position:fixed;font-weight:bold;}
+@keyframes sp-burst{0%{transform:translate(0,0) scale(.2);opacity:1;}
+  100%{transform:translate(var(--dx),var(--dy)) scale(1);opacity:0;}}
+@keyframes sp-drip{0%{transform:translate(0,0);opacity:1;}
+  100%{transform:translate(var(--dx),80px) scale(.4);opacity:0;}}
+@keyframes sp-rise{0%{transform:translate(0,0);opacity:1;}
+  100%{transform:translate(var(--dx),-80px);opacity:0;}}
+@keyframes sp-swirl{0%{transform:rotate(0) translateX(0);opacity:.9;}
+  100%{transform:rotate(360deg) translateX(60px);opacity:0;}}
+@keyframes sp-splash{0%{transform:scale(0);opacity:1;}100%{transform:scale(3) translate(var(--dx),var(--dy));opacity:0;}}
+@keyframes sp-halo{0%{transform:scale(.4);opacity:1;}100%{transform:scale(3);opacity:0;}}
+@keyframes sp-flambe{0%{transform:scale(.3) translateY(0);opacity:1;}
+  50%{transform:scale(1.8) translateY(-20px);opacity:.9;}
+  100%{transform:scale(2.5) translateY(-40px);opacity:0;}}
+@keyframes sp-twinkle{0%,100%{opacity:.3;transform:scale(1) translate(var(--dx),var(--dy));}
+  50%{opacity:1;transform:scale(1.5) rotate(180deg) translate(var(--dx),var(--dy));}}
+@keyframes sp-drop{0%{transform:translateY(-20px) translateX(var(--dx));opacity:0;}
+  30%{opacity:1;}100%{transform:translateY(80px) translateX(var(--dx));opacity:0;}}
+@keyframes sp-bubble{0%{transform:translateY(0) scale(.5);opacity:0;}
+  30%{opacity:1;}100%{transform:translateY(-100px) scale(1.4) translateX(var(--dx));opacity:0;}}
+.sp-p.burst{animation:sp-burst 1s ease-out forwards;}
+.sp-p.burst-shake{animation:sp-burst 1s ease-out forwards;}
+.sp-p.drip{animation:sp-drip 1.4s ease-in forwards;}
+.sp-p.halo{animation:sp-halo 1s ease-out forwards;}
+.sp-p.swirl{animation:sp-swirl 1.2s linear forwards;}
+.sp-p.splash{animation:sp-splash 1s ease-out forwards;}
+.sp-p.rise{animation:sp-rise 1.5s ease-out forwards;}
+.sp-p.flambe{animation:sp-flambe 1s ease-out forwards;}
+.sp-p.twinkle{animation:sp-twinkle 1.5s ease-in-out forwards;}
+.sp-p.drop{animation:sp-drop 1.6s ease-in forwards;}
+.sp-p.bubble{animation:sp-bubble 1.8s ease-out forwards;}
 
-    /* 火焰在锅下面 */
-    .flame-holder{position:absolute;left:50%;top:90px;transform:translateX(-50%);
-      width:80px;height:100px;z-index:1;pointer-events:none;display:flex;justify-content:center;align-items:flex-start;}
+/* 通用组件 */
+.row{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;}
+.chip{padding:5px 10px;border:1px solid rgba(0,0,0,.1);background:var(--card);
+  border-radius:16px;cursor:pointer;font-size:12px;}
+.chip.on{background:var(--acc);color:#fff;border-color:var(--acc);}
+.h{font-weight:700;margin:12px 0 6px;font-size:13px;display:flex;justify-content:space-between;align-items:center;}
+.h .caret{font-size:11px;color:#999;cursor:pointer;user-select:none;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:5px;}
+.cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:22px;
+  background:var(--card);border-radius:10px;cursor:pointer;user-select:none;transition:.15s;position:relative;}
+.cell.on{background:var(--acc);transform:scale(1.08);}
+.cabinet{border:1px dashed rgba(0,0,0,.15);border-radius:12px;padding:8px;margin-top:6px;}
+.btn{padding:9px 16px;border:none;background:var(--acc);color:#fff;border-radius:10px;
+  cursor:pointer;font-weight:700;font-size:13px;box-shadow:0 3px 10px rgba(0,0,0,.1);}
+.btn.ghost{background:transparent;color:var(--acc);border:1.5px solid var(--acc);box-shadow:none;}
+.btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;}
+.card{background:var(--card);border-radius:14px;padding:12px;margin-bottom:10px;
+  box-shadow:0 2px 8px rgba(0,0,0,.04);}
+.card.dark{background:linear-gradient(135deg,#1a1023,#2a1035);color:#e8c8ff;
+  border:1px solid #6a2a8a;box-shadow:0 0 16px rgba(140,60,200,.3);}
+.card.dark .tag{background:rgba(255,255,255,.08);color:#c8a8e8;}
+.dish-emo{font-size:26px;letter-spacing:2px;}
+.dish-name{font-weight:700;font-size:15px;margin:4px 0;}
+.tag{display:inline-block;background:rgba(0,0,0,.06);padding:2px 8px;border-radius:10px;
+  font-size:11px;margin:2px 4px 2px 0;color:#666;}
 
-    /* 火候滑竿 */
-    .fire-ctrl{display:flex;align-items:center;justify-content:center;gap:10px;padding:6px 0;font-size:12px;}
-    .fire-ctrl input[type=range]{width:180px;accent-color:var(--acc);}
+/* Loading overlay */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;
+  align-items:center;justify-content:center;z-index:9998;}
+.loader-box{background:var(--card);border-radius:20px;padding:30px 40px;
+  text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.3);min-width:200px;}
+.spinner{font-size:48px;display:inline-block;animation:spin 1.2s linear infinite;}
+@keyframes spin{0%{transform:rotate(0);}100%{transform:rotate(360deg);}}
+.loader-text{margin-top:12px;font-size:13px;color:#666;}
+.ck[data-theme=night] .loader-text{color:#aaa;}
 
-    /* 特效层 */
-    .fx-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:3;}
-    .fx-particle{position:absolute;font-size:14px;font-weight:bold;opacity:.9;}
-    @keyframes fall{0%{transform:translateY(-20px);opacity:0;}20%{opacity:1;}100%{transform:translateY(80px);opacity:0;}}
-    @keyframes rise{0%{transform:translateY(20px);opacity:0;}20%{opacity:1;}100%{transform:translateY(-80px);opacity:0;}}
-    @keyframes swirl{0%{transform:rotate(0) translateX(20px);opacity:.9;}100%{transform:rotate(360deg) translateX(20px);opacity:0;}}
-    @keyframes drip{0%{transform:translateY(-10px) scale(1);opacity:1;}70%{transform:translateY(30px) scale(.6);opacity:1;}100%{transform:translateY(50px) scale(.2);opacity:0;}}
-    @keyframes splash{0%{transform:scale(0);opacity:1;}100%{transform:scale(2.5);opacity:0;}}
-    @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
-    @keyframes twinkle{0%,100%{opacity:.3;transform:scale(1);}50%{opacity:1;transform:scale(1.4) rotate(180deg);}}
-    @keyframes flambe{0%{transform:scale(0.3);opacity:1;}50%{transform:scale(2);opacity:.9;}100%{transform:scale(3);opacity:0;}}
-    .p-fall{animation:fall 1.5s ease-in;}
-    .p-rise{animation:rise 1.8s ease-out;}
-    .p-swirl{animation:swirl 1.2s linear;}
-    .p-drip{animation:drip 1.6s ease-in;}
-    .p-splash{animation:splash .8s ease-out;}
-    .p-shake{animation:shake .1s linear 8;}
-    .p-twinkle{animation:twinkle 1.5s ease-in-out;}
-    .p-flambe{animation:flambe 1s ease-out;}
+/* 恭喜弹窗（金光） */
+.congrats{background:linear-gradient(135deg,#fff5c8,#ffd76a,#ff9a3c);
+  border-radius:20px;padding:26px;text-align:center;color:#5a3a10;
+  box-shadow:0 0 60px rgba(255,180,60,.7),inset 0 0 30px rgba(255,255,255,.5);
+  animation:pop .5s ease-out,glow 2s ease-in-out infinite alternate;max-width:320px;}
+.congrats.dark{background:linear-gradient(135deg,#2a0d3a,#5a1a6a,#8a2a9a);color:#f0d8ff;
+  box-shadow:0 0 60px rgba(160,60,200,.6),inset 0 0 30px rgba(200,100,240,.3);}
+@keyframes pop{0%{transform:scale(.5);opacity:0;}100%{transform:scale(1);opacity:1;}}
+@keyframes glow{0%{filter:brightness(1);}100%{filter:brightness(1.15);}}
+.congrats h3{margin:6px 0;font-size:20px;}
+.congrats .big-emo{font-size:60px;margin:8px 0;filter:drop-shadow(0 0 20px rgba(255,255,150,.9));}
 
-    /* 选择行 */
-    .row{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;}
-    .chip{padding:5px 10px;border:1px solid rgba(0,0,0,.1);background:var(--card);
-      border-radius:16px;cursor:pointer;font-size:12px;}
-    .chip.on{background:var(--acc);color:#fff;border-color:var(--acc);}
-    .h{font-weight:700;margin:12px 0 6px;font-size:13px;}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:5px;}
-    .cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:22px;
-      background:var(--card);border-radius:10px;cursor:pointer;user-select:none;transition:.15s;}
-    .cell.on{background:var(--acc);transform:scale(1.08);}
-    .cabinet{border:1px dashed rgba(0,0,0,.15);border-radius:12px;padding:8px;margin-top:6px;}
-    .cabinet .hd{display:flex;justify-content:space-between;cursor:pointer;font-size:12px;color:#666;}
-    .btn{padding:9px 16px;border:none;background:var(--acc);color:#fff;border-radius:10px;
-      cursor:pointer;font-weight:700;font-size:13px;box-shadow:0 3px 10px rgba(0,0,0,.1);}
-    .btn.ghost{background:transparent;color:var(--acc);border:1.5px solid var(--acc);box-shadow:none;}
-    .btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;}
-    .card{background:var(--card);border-radius:14px;padding:12px;margin-bottom:10px;
-      box-shadow:0 2px 8px rgba(0,0,0,.04);}
-    .dish-emo{font-size:26px;letter-spacing:2px;}
-    .dish-name{font-weight:700;font-size:15px;margin:4px 0;}
-    .tag{display:inline-block;background:rgba(0,0,0,.06);padding:2px 8px;border-radius:10px;
-      font-size:11px;margin:2px 4px 2px 0;color:#666;}
+/* 聊天页 */
+.chat-page{display:flex;flex-direction:column;height:100%;}
+.chat-head{display:flex;align-items:center;gap:12px;padding:10px;background:var(--card);border-radius:12px;margin-bottom:10px;}
+.chat-head img{width:56px;height:56px;border-radius:50%;object-fit:cover;}
+.chat-head .info{flex:1;}
+.chat-head .name{font-weight:700;font-size:15px;}
+.chat-head .sub{font-size:11px;color:#888;}
+.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
+.status-cell{background:var(--card);border-radius:10px;padding:8px 10px;font-size:12px;line-height:1.4;}
+.status-cell .lbl{font-size:10px;color:#999;font-weight:700;margin-bottom:2px;}
+.chat-log{background:var(--card);border-radius:12px;padding:10px;flex:1;overflow-y:auto;min-height:150px;max-height:280px;}
+.chat-msg{margin-bottom:6px;padding:6px 10px;border-radius:10px;max-width:80%;font-size:13px;line-height:1.5;}
+.chat-msg.me{background:var(--acc);color:#fff;margin-left:auto;}
+.chat-msg.other{background:rgba(0,0,0,.05);}
+.ck[data-theme=night] .chat-msg.other{background:rgba(255,255,255,.08);}
+.chat-in{display:flex;gap:6px;margin-top:8px;}
+.chat-in input{flex:1;padding:9px;border:1px solid rgba(0,0,0,.1);border-radius:10px;
+  background:var(--card);color:var(--ink);}
+.textarea{width:100%;min-height:80px;padding:10px;border:1px solid rgba(0,0,0,.1);
+  border-radius:10px;background:var(--card);color:var(--ink);font:inherit;box-sizing:border-box;}
+`;
+document.head.appendChild(style);
 
-    /* 冰箱 */
-    .fridge-wrap{position:relative;width:100%;max-width:300px;height:380px;margin:12px auto;
-      background:linear-gradient(180deg,#d9dee6,#b0bccc);border-radius:16px;
-      box-shadow:0 8px 30px rgba(0,0,0,.15);perspective:1000px;}
-    .fridge-door{position:absolute;inset:0;background:linear-gradient(135deg,#eef1f6,#c9d1de);
-      border-radius:16px;transform-origin:left center;transition:transform .8s;
-      display:flex;align-items:center;justify-content:center;font-size:54px;cursor:pointer;
-      box-shadow:inset -8px 0 15px rgba(0,0,0,.1);z-index:2;}
-    .fridge-door.open{transform:rotateY(-115deg);}
-    .fridge-in{position:absolute;inset:8px;background:#f8fafc;border-radius:12px;
-      padding:8px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
-    .fridge-in .sec{margin-bottom:8px;}
-    .fridge-in .sec-title{font-weight:700;font-size:11px;color:#666;margin-bottom:3px;
-      position:sticky;top:0;background:#f8fafc;padding:2px 0;z-index:1;}
-    .fridge-in .row-scroll{display:flex;gap:5px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
-    .fridge-in .row-scroll .cell{flex:0 0 44px;background:#fff;}
+/* ============ 挂载 ============ */
+container.innerHTML=`<div class="ck" data-theme="${S.theme}">
+  <div class="ck-top">
+    <div>🍳 Char 的厨房${isLateNight?'<span class="midnight-tag">🌙 深夜食堂</span>':''}</div>
+    <button class="ck-close">×</button>
+  </div>
+  <div class="ck-body" id="ckBody"></div>
+  <div class="ck-nav" id="ckNav">
+    ${[["stove","🍳","料理台"],["book","📖","菜谱"],["feed","🥄","投喂"],["custom","🖼","自定义"],["set","⚙️","设置"]]
+      .map(([k,i,n])=>`<button data-t="${k}"><span class="ico">${i}</span>${n}</button>`).join("")}
+  </div>
+</div>`;
+const root=container.querySelector(".ck");
+const body=container.querySelector("#ckBody");
+container.querySelector(".ck-close").onclick=()=>roche.ui.closeApp();
 
-    .plate{margin:12px auto;width:80%;max-width:280px;aspect-ratio:2/1;
-      background:radial-gradient(#fff,#e0e0e0);border-radius:50%;
-      box-shadow:0 6px 16px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;
-      font-size:26px;letter-spacing:6px;padding:0 20px;text-align:center;overflow:hidden;}
-    .plate.empty{color:#bbb;font-size:13px;letter-spacing:0;}
+function applyTheme(){
+  const t=THEMES[S.theme]||THEMES.warm;
+  root.style.setProperty("--bg",t.bg);
+  root.style.setProperty("--ink",t.ink);
+  root.style.setProperty("--acc",t.acc);
+  root.style.setProperty("--card",t.card);
+  root.setAttribute("data-theme",S.theme);
+}
+function nav(){
+  container.querySelectorAll("#ckNav button").forEach(b=>{
+    b.classList.toggle("on",b.dataset.t===S.tab);
+    b.onclick=()=>{ S.tab=b.dataset.t; render(); };
+  });
+}
 
-    .chat-log{max-height:260px;overflow-y:auto;background:var(--card);border-radius:12px;padding:10px;margin-top:10px;}
-    .chat-msg{margin-bottom:6px;padding:6px 10px;border-radius:10px;max-width:80%;font-size:13px;line-height:1.5;}
-    .chat-msg.me{background:var(--acc);color:#fff;margin-left:auto;}
-    .chat-msg.other{background:rgba(0,0,0,.05);}
-    .chat-in{display:flex;gap:6px;margin-top:8px;}
-    .chat-in input{flex:1;padding:9px;border:1px solid rgba(0,0,0,.1);border-radius:10px;background:var(--card);color:var(--ink);}
-    `;
-    document.head.appendChild(style);
+/* ============ 火焰 SVG（v2 水滴形，好看那版） ============ */
+function flameSVG(level){
+  if(level===0) return `<div style="opacity:.4;font-size:11px;color:#888;margin-top:20px;">🚫 熄火</div>`;
+  const scale=0.4+level*0.28, w=60*scale, h=80*scale;
+  return `<svg width="${w}" height="${h}" viewBox="0 0 60 80">
+    <defs><radialGradient id="fg${level}" cx="50%" cy="80%" r="60%">
+      <stop offset="0%" stop-color="#fff2b0"/>
+      <stop offset="40%" stop-color="#ffb03a"/>
+      <stop offset="100%" stop-color="#e63b1e" stop-opacity="0.9"/>
+    </radialGradient></defs>
+    <path fill="url(#fg${level})" d="M30 78 C 5 65, 10 40, 25 25 C 22 40, 35 42, 32 22 C 40 30, 52 45, 48 62 C 46 72, 40 78, 30 78 Z">
+      <animate attributeName="d" dur="${(0.8-level*0.1).toFixed(2)}s" repeatCount="indefinite"
+        values="M30 78 C 5 65, 10 40, 25 25 C 22 40, 35 42, 32 22 C 40 30, 52 45, 48 62 C 46 72, 40 78, 30 78 Z;
+                M30 78 C 8 68, 6 38, 22 22 C 24 42, 36 40, 30 18 C 42 28, 54 46, 50 64 C 46 74, 40 78, 30 78 Z;
+                M30 78 C 5 65, 10 40, 25 25 C 22 40, 35 42, 32 22 C 40 30, 52 45, 48 62 C 46 72, 40 78, 30 78 Z"/>
+    </path>
+    <path fill="#fff2a0" opacity=".9" d="M30 74 C 18 66, 20 48, 28 36 C 27 46, 34 46, 32 32 C 38 40, 44 52, 42 64 C 40 70, 36 74, 30 74 Z">
+      <animate attributeName="opacity" values=".9;.5;.9" dur=".4s" repeatCount="indefinite"/>
+    </path>
+  </svg>`;
+}
 
-    /* ============ 挂载 ============ */
-    container.innerHTML = `<div class="ck" data-theme="${S.theme}">
-      <div class="ck-top">
-        <div>🍳 Char 的厨房${isLateNight?'<span class="midnight-tag">🌙 深夜食堂</span>':''}</div>
-        <button class="ck-close">×</button>
-      </div>
-      <div class="ck-body" id="ckBody"></div>
-      <div class="ck-nav" id="ckNav">
-        ${[["stove","🍳","料理台"],["book","📖","菜谱"],["feed","🥄","投喂"],["fridge","🧊","冰箱"],["set","⚙️","设置"]]
-          .map(([k,i,n])=>`<button data-t="${k}"><span class="ico">${i}</span>${n}</button>`).join("")}
+function panSVG(pot){
+  if(pot==="pressure") return `<svg class="pan-svg" viewBox="0 0 200 80">
+    <ellipse cx="100" cy="55" rx="80" ry="22" fill="#555"/>
+    <rect x="88" y="10" width="24" height="14" rx="3" fill="#888"/>
+    <ellipse cx="100" cy="35" rx="70" ry="10" fill="#777"/></svg>`;
+  if(pot==="flat") return `<svg class="pan-svg" viewBox="0 0 200 80">
+    <ellipse cx="85" cy="54" rx="70" ry="16" fill="#2a2a2a"/>
+    <ellipse cx="85" cy="50" rx="66" ry="12" fill="#3d3d3d"/>
+    <rect x="150" y="48" width="45" height="6" rx="3" fill="#6b3e1a"/></svg>`;
+  return `<svg class="pan-svg" viewBox="0 0 200 80">
+    <path d="M20 42 Q100 100 180 42 Z" fill="#2a2a2a"/>
+    <ellipse cx="100" cy="44" rx="72" ry="6" fill="#1a1a1a"/></svg>`;
+}
+
+/* ============ 调料特效（从图标位置出发，不落在锅上） ============ */
+function playSpiceFx(spice, originEl){
+  const fx=SPICE_FX[spice]; if(!fx) return;
+  const rect=originEl.getBoundingClientRect();
+  const ox=rect.left+rect.width/2, oy=rect.top+rect.height/2;
+  let layer=document.querySelector(".spice-fx-layer");
+  if(!layer){ layer=document.createElement("div"); layer.className="spice-fx-layer"; document.body.appendChild(layer); }
+  const count = {burst:14,"burst-shake":14,drip:6,halo:1,swirl:10,splash:6,rise:10,flambe:3,twinkle:12,drop:10,bubble:10}[fx.anim]||10;
+  for(let i=0;i<count;i++){
+    const p=document.createElement("span");
+    p.className=`sp-p ${fx.anim}`;
+    p.textContent=fx.p;
+    p.style.color=fx.c;
+    p.style.left=ox+"px"; p.style.top=oy+"px";
+    p.style.fontSize=(14+Math.random()*8)+"px";
+    // 向外散开的方向：偏向侧上方，避开锅（锅在屏幕中央）
+    const angle=(Math.random()*Math.PI)-Math.PI/2; // -90 ~ 90 度（向外）
+    const dir=ox>window.innerWidth/2?1:-1;
+    const dist=40+Math.random()*80;
+    p.style.setProperty("--dx",(Math.cos(angle)*dist*dir)+"px");
+    p.style.setProperty("--dy",(Math.sin(angle)*dist-20)+"px");
+    p.style.animationDelay=(Math.random()*.2)+"s";
+    layer.appendChild(p);
+    setTimeout(()=>p.remove(),2200);
+  }
+  roche.ui.toast(`${fx.name} 已加入！`);
+}
+
+/* ============ Loading / 恭喜弹窗 ============ */
+function showLoading(text, emoji="🍙"){
+  hideLoading();
+  const o=document.createElement("div");
+  o.className="overlay"; o.id="ckLoading";
+  o.innerHTML=`<div class="loader-box">
+    <div class="spinner">${emoji}</div>
+    <div class="loader-text">${text}</div>
+  </div>`;
+  document.body.appendChild(o);
+}
+function hideLoading(){ document.getElementById("ckLoading")?.remove(); }
+
+function showCongrats(dish, dark){
+  return new Promise(resolve=>{
+    const o=document.createElement("div"); o.className="overlay";
+    o.innerHTML=`<div class="congrats ${dark?"dark":""}">
+      <div style="font-size:12px;letter-spacing:4px;opacity:.7;">${dark?"☠️ 黑暗料理诞生":"🎉 恭喜获得"}</div>
+      <div class="big-emo">${dish.emojis.map(e=>e.startsWith("::")?"🖼":e).join("")}</div>
+      <h3>${dish.name}</h3>
+      <div style="font-size:13px;margin:6px 0;opacity:.85;">${dish.desc||""}</div>
+      ${dish.effect?`<div style="font-size:12px;opacity:.75;">✨ ${dish.effect}</div>`:""}
+      <button class="btn" style="margin-top:14px;background:${dark?"#8a3aa8":"#e8863b"};" id="okBtn">收下这道菜</button>
+    </div>`;
+    document.body.appendChild(o);
+    o.querySelector("#okBtn").onclick=()=>{ o.remove(); resolve(); };
+  });
+}
+
+async function editableDialog(title, initial){
+  return new Promise(resolve=>{
+    const o=document.createElement("div"); o.className="overlay";
+    o.innerHTML=`<div class="loader-box" style="text-align:left;max-width:340px;width:90%;">
+      <div style="font-weight:700;margin-bottom:8px;">${title}</div>
+      <textarea class="textarea" id="ta">${initial||""}</textarea>
+      <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
+        <button class="btn ghost" id="cn">取消</button>
+        <button class="btn" id="ok">保存</button>
       </div>
     </div>`;
-    const root = container.querySelector(".ck");
-    const body = container.querySelector("#ckBody");
-    container.querySelector(".ck-close").onclick = ()=>roche.ui.closeApp();
+    document.body.appendChild(o);
+    o.querySelector("#cn").onclick=()=>{ o.remove(); resolve(null); };
+    o.querySelector("#ok").onclick=()=>{ const v=o.querySelector("#ta").value.trim(); o.remove(); resolve(v); };
+  });
+}
 
-    function applyTheme(){
-      const t = THEMES[S.theme] || THEMES.warm;
-      root.style.setProperty("--bg",t.bg);
-      root.style.setProperty("--ink",t.ink);
-      root.style.setProperty("--acc",t.acc);
-      root.style.setProperty("--card",t.card);
-      root.setAttribute("data-theme", S.theme);
-    }
-    function nav(){
-      container.querySelectorAll("#ckNav button").forEach(b=>{
-        b.classList.toggle("on", b.dataset.t===S.tab);
-        b.onclick = ()=>{ S.tab=b.dataset.t; render(); };
-      });
-    }
+/* ============ 黑暗料理判定 ============ */
+function isDarkCombo(picked, spices){
+  const has=(arr,e)=>arr.includes(e);
+  const dark = picked.some(e=>DARK_EMOJIS.includes(e));
+  const seaFruit = picked.some(e=>["🍤","🦑","🦐","🦀","🐟","🦞"].includes(e)) &&
+                   picked.some(e=>["🍎","🍏","🍓","🍒","🍑","🍰","🍫","🍩"].includes(e));
+  const chaos = spices.length>=4;
+  const sweetSalty = spices.includes("🧂")&&spices.includes("🍯")&&spices.includes("🌶️");
+  return dark||seaFruit||chaos||sweetSalty;
+}
 
-    /* ============ 火焰 SVG（挂在锅下方） ============ */
-    function flameSVG(level){
-      if(level===0) return `<div style="opacity:.4;font-size:11px;color:#888;margin-top:20px;">🚫 熄火</div>`;
-      const scale = 0.35 + level*0.22;
-      const w = 60*scale, h = 90*scale;
-      return `<svg width="${w}" height="${h}" viewBox="0 0 60 90">
-        <defs><radialGradient id="fg${level}" cx="50%" cy="20%" r="70%">
-          <stop offset="0%" stop-color="#fff2b0"/>
-          <stop offset="40%" stop-color="#ffb03a"/>
-          <stop offset="100%" stop-color="#e63b1e" stop-opacity=".85"/>
-        </radialGradient></defs>
-        <path fill="url(#fg${level})" d="M30 2 C 10 25, 12 50, 25 65 C 22 50, 35 48, 32 30 C 42 42, 54 58, 48 78 C 44 86, 36 88, 30 88 C 24 88, 16 86, 12 78 C 6 58, 18 42, 28 30 C 25 48, 38 50, 35 65 C 48 50, 50 25, 30 2 Z">
-          <animate attributeName="d" dur="${(0.7-level*0.08).toFixed(2)}s" repeatCount="indefinite"
-            values="M30 2 C 10 25, 12 50, 25 65 C 22 50, 35 48, 32 30 C 42 42, 54 58, 48 78 C 44 86, 36 88, 30 88 C 24 88, 16 86, 12 78 C 6 58, 18 42, 28 30 C 25 48, 38 50, 35 65 C 48 50, 50 25, 30 2 Z;
-                    M30 4 C 8 28, 10 52, 22 66 C 20 52, 34 46, 30 26 C 44 40, 56 60, 50 80 C 46 87, 34 89, 30 89 C 26 89, 14 87, 10 80 C 4 60, 16 40, 30 26 C 26 46, 40 52, 38 66 C 50 52, 52 28, 30 4 Z;
-                    M30 2 C 10 25, 12 50, 25 65 C 22 50, 35 48, 32 30 C 42 42, 54 58, 48 78 C 44 86, 36 88, 30 88 C 24 88, 16 86, 12 78 C 6 58, 18 42, 28 30 C 25 48, 38 50, 35 65 C 48 50, 50 25, 30 2 Z"/>
-        </path>
-        <path fill="#fff2a0" opacity=".85" d="M30 30 C 22 45, 22 60, 30 72 C 38 60, 38 45, 30 30 Z">
-          <animate attributeName="opacity" values=".9;.5;.9" dur=".35s" repeatCount="indefinite"/>
-        </path>
-      </svg>`;
-    }
+/* ============ Char 主动讨菜 ============ */
+async function maybeCraving(force){
+  if(!force){ if(S.cravingBanner) return; if(Math.random()>0.2) return; }
+  try{
+    const chars=await roche.character.list();
+    if(!chars.length){ if(force) roche.ui.toast("没有 Char"); return; }
+    const c=chars[Math.floor(Math.random()*chars.length)];
+    const res=await roche.ai.chat({messages:[
+      {role:"system",content:`你扮演「${c.name||c.handle}」。人设：${c.persona||c.bio||""}\n主动来 user 的厨房讨吃的，写一句短短的、带角色语气的讨菜台词（≤30字），不要引号。`},
+      {role:"user",content:"你想吃什么？"}
+    ],temperature:1.1});
+    S.cravingBanner={char:c, text:(res.text||"").trim()||"肚子饿了…做点吃的？"};
+    if(S.tab==="stove") render();
+  }catch{ if(force) roche.ui.toast("呼叫失败"); }
+}
 
-    /* ============ 锅 SVG ============ */
-    function panSVG(pot){
-      if(pot==="pressure"){
-        return `<svg class="pan-svg" viewBox="0 0 200 80">
-          <ellipse cx="100" cy="55" rx="80" ry="22" fill="#555"/>
-          <rect x="88" y="10" width="24" height="14" rx="3" fill="#888"/>
-          <ellipse cx="100" cy="35" rx="70" ry="10" fill="#777"/>
-          <ellipse cx="100" cy="52" rx="65" ry="8" fill="#333"/></svg>`;
-      }
-      if(pot==="flat"){
-        return `<svg class="pan-svg" viewBox="0 0 200 80">
-          <ellipse cx="85" cy="54" rx="70" ry="16" fill="#2a2a2a"/>
-          <ellipse cx="85" cy="50" rx="66" ry="12" fill="#3d3d3d"/>
-          <rect x="150" y="48" width="45" height="6" rx="3" fill="#6b3e1a"/></svg>`;
-      }
-      return `<svg class="pan-svg" viewBox="0 0 200 80">
-        <path d="M20 42 Q100 100 180 42 Z" fill="#2a2a2a"/>
-        <path d="M28 44 Q100 88 172 44" fill="none" stroke="#555" stroke-width="2"/>
-        <ellipse cx="100" cy="44" rx="72" ry="6" fill="#1a1a1a"/></svg>`;
-    }
+/* ============ 渲染 ============ */
+function render(){
+  applyTheme(); nav(); body.innerHTML="";
+  ({stove:renderStove, book:renderBook, feed:renderFeed, custom:renderCustom, set:renderSet})[S.tab](body);
+}
 
-    /* ============ 特效触发 ============ */
-    function playSpiceFx(spice){
-      const fx = SPICE_FX[spice]; if(!fx) return;
-      const layer = container.querySelector("#fxLayer");
-      if(!layer) return;
+/* ---------- 料理台 ---------- */
+function renderStove(el){
+  const foodDots=S.picked.map((p,i)=>{
+    const emo=p.startsWith("::")?(S.custom.find(c=>c.id===p.slice(2))?.emoji||"🖼"):p;
+    const x=30+(i%5)*35+Math.random()*8, y=20+Math.floor(i/5)*22;
+    return `<span style="left:${x}px;top:${y}px;">${emo}</span>`;
+  }).join("");
+  const catBlock=(cat,list)=>{
+    const open=S.catOpen[cat]!==false;
+    return `<div class="h" data-cat="${cat}"><span>${cat}</span><span class="caret">${open?"▼":"▶"}</span></div>
+      ${open?`<div class="grid">${list.map(e=>`<div class="cell ${S.picked.includes(e)?"on":""}" data-e="${e}">${e}</div>`).join("")}</div>`:""}`;
+  };
+  el.innerHTML=`
+    ${S.cravingBanner?`<div class="craving" id="cravBanner">
+      ${S.cravingBanner.char.avatar?`<img src="${S.cravingBanner.char.avatar}">`:`<div style="width:36px;height:36px;border-radius:50%;background:#ddd;"></div>`}
+      <div><b>${S.cravingBanner.char.handle||S.cravingBanner.char.name}</b>：${S.cravingBanner.text}
+      <div style="font-size:11px;opacity:.7;">点这里 → 为它下厨</div></div></div>`:""}
+    <div class="stove-fixed">
+      <div class="stove">
+        <div class="pan-holder" id="pan">${panSVG(S.pot)}<div class="pan-food">${foodDots}</div></div>
+        <div class="flame-holder" id="flame">${flameSVG(S.fire)}</div>
+      </div>
+      <div class="fire-ctrl">
+        <span>🚫</span><input type="range" min="0" max="4" value="${S.fire}" id="fire"><span>猛🔥</span>
+        <span style="color:#999;font-size:11px;">${["熄火","小火","中火","中大火","猛火"][S.fire]}</span>
+      </div>
+    </div>
+    <div class="h"><span>锅具</span></div>
+    <div class="row">${POTS.map(p=>`<div class="chip ${S.pot===p.id?"on":""}" data-pot="${p.id}">${p.name}·${p.tag}</div>`).join("")}</div>
+    <div class="h"><span>工具</span></div>
+    <div class="row">${TOOLS.map(t=>`<div class="chip ${S.tool===t.id?"on":""}" data-tool="${t.id}">${t.id==="spatula"?"🥄":"🍶"} ${t.name}</div>`).join("")}</div>
 
-      const spawn = (anim, count, opts={})=>{
-        for(let i=0;i<count;i++){
-          const el = document.createElement("span");
-          el.className = `fx-particle ${anim}`;
-          el.textContent = opts.text || fx.particle;
-          el.style.color = opts.color || fx.color;
-          el.style.left = (30 + Math.random()*140) + "px";
-          el.style.top  = (Math.random()*40) + "px";
-          el.style.fontSize = (opts.size||14) + "px";
-          el.style.animationDelay = (Math.random()*.3)+"s";
-          layer.appendChild(el);
-          setTimeout(()=>el.remove(), 2500);
-        }
-      };
+    <div class="h"><span>调料·台面常用</span></div>
+    <div class="grid">${SPICES_COMMON.map(s=>`<div class="cell ${S.spices.includes(s)?"on":""}" data-sp="${s}" title="${SPICE_FX[s]?.name||""}">${s}</div>`).join("")}</div>
+    <div class="cabinet">
+      <div class="h" id="cabHd" style="margin:0;cursor:pointer;"><span>柜子里的稀有调料</span><span class="caret">${S.cabinetOpen?"▼":"▶"}</span></div>
+      ${S.cabinetOpen?`<div class="grid" style="margin-top:6px;">${SPICES_CABINET.map(s=>`<div class="cell ${S.spices.includes(s)?"on":""}" data-sp="${s}" title="${SPICE_FX[s]?.name||""}">${s}</div>`).join("")}</div>`:""}
+    </div>
 
-      switch(spice){
-        case "🧂": spawn("p-fall", 20, {text:"·", size:18}); break;
-        case "🌶️": spawn("p-rise", 12, {text:"~", color:"#e63b1e", size:20});
-                   root.querySelector(".pan-holder")?.classList.add("p-shake");
-                   setTimeout(()=>root.querySelector(".pan-holder")?.classList.remove("p-shake"),800); break;
-        case "🍯": spawn("p-drip", 6, {text:"◉", size:20}); break;
-        case "🧈": spawn("p-splash", 4, {text:"◐", size:30}); break;
-        case "🫒": spawn("p-swirl", 10, {text:"◎"}); break;
-        case "🥫": spawn("p-splash", 6, {text:"●", color:"#d33", size:26}); break;
-        case "🧄": spawn("p-rise", 8, {text:"■", color:"#f5f0dc"}); break;
-        case "🍶": spawn("p-rise", 10, {text:"˜", color:"#b8d8ff"}); break;
-        case "🥃": spawn("p-flambe", 3, {text:"🔥", size:40}); break;
-        case "💊": spawn("p-twinkle", 15, {text:"✦", color:"#b06bff", size:16}); break;
-        case "🧊": spawn("p-fall", 12, {text:"❄", color:"#a8d8ff", size:16}); break;
-        case "🌿": spawn("p-fall", 8, {text:"❦", color:"#5fb04a"}); break;
-        case "🫙": spawn("p-fall", 25, {text:"·", color:"#c8bfae", size:16}); break;
-        case "⚗️": spawn("p-rise", 12, {text:"○", color:"#6bd2c8"}); break;
-      }
-      roche.ui.toast(`${fx.name} 已加入！`);
-    }
+    ${Object.entries(FRIDGE).map(([c,l])=>catBlock(c,l)).join("")}
+    ${S.custom.length?`<div class="h" data-cat="自定义"><span>自定义</span><span class="caret">${S.catOpen["自定义"]!==false?"▼":"▶"}</span></div>
+      ${S.catOpen["自定义"]!==false?`<div class="grid">${S.custom.map(c=>`<div class="cell ${S.picked.includes("::"+c.id)?"on":""}" data-ce="${c.id}" title="${c.name}">${c.image?`<img src="${c.image}" style="width:100%;height:100%;border-radius:8px;object-fit:cover;">`:(c.emoji||"🖼")}</div>`).join("")}</div>`:""}`:""}
 
-    /* ============ Char 主动讨菜 ============ */
-    async function maybeCraving(){
-      if(S.cravingBanner) return;
-      if(Math.random() > 0.2) return;
-      try{
-        const chars = await roche.character.list();
-        if(!chars.length) return;
-        const c = chars[Math.floor(Math.random()*chars.length)];
-        const res = await roche.ai.chat({messages:[
-          {role:"system",content:`你扮演「${c.name||c.handle}」。人设：${c.persona||c.bio||""}\n主动来 user 的厨房讨吃的，写一句短短的、带角色语气的讨菜台词（≤30字），不要引号。`},
-          {role:"user",content:"你想吃什么？"}
-        ],temperature:1.1});
-        S.cravingBanner = { char:c, text:(res.text||"").trim() || "肚子饿了…做点吃的？" };
-        if(S.tab==="stove") render();
-      }catch{}
-    }
+    <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn" id="toss" ${S.picked.length===0||S.fire===0?"disabled":""}>🥢 颠勺</button>
+      <button class="btn" id="cook" ${S.picked.length===0||S.fire===0?"disabled":""}>🍳 出锅</button>
+      <button class="btn ghost" id="clr">清空</button>
+    </div>`;
 
-    /* ============ 渲染 ============ */
-    function render(){
-      applyTheme(); nav(); body.innerHTML="";
-      ({stove:renderStove, book:renderBook, feed:renderFeed, fridge:renderFridge, set:renderSet})[S.tab](body);
-    }
+  const $=(s)=>el.querySelector(s);
+  $("#fire").oninput=(e)=>{ S.fire=+e.target.value;
+    $("#flame").innerHTML=flameSVG(S.fire);
+    el.querySelectorAll(".fire-ctrl span")[2].textContent=["熄火","小火","中火","中大火","猛火"][S.fire]; };
+  el.querySelectorAll("[data-pot]").forEach(x=>x.onclick=()=>{S.pot=x.dataset.pot;render();});
+  el.querySelectorAll("[data-tool]").forEach(x=>x.onclick=()=>{S.tool=x.dataset.tool;render();});
+  el.querySelectorAll("[data-cat]").forEach(x=>x.onclick=()=>{
+    const c=x.dataset.cat; S.catOpen[c]=S.catOpen[c]===false; render();
+  });
+  el.querySelectorAll("[data-sp]").forEach(x=>x.onclick=()=>{
+    const s=x.dataset.sp; const i=S.spices.indexOf(s);
+    if(i>=0){ S.spices.splice(i,1); render(); }
+    else { S.spices.push(s); playSpiceFx(s, x); render(); }
+  });
+  el.querySelectorAll("[data-e]").forEach(x=>x.onclick=()=>{
+    const e=x.dataset.e; const i=S.picked.indexOf(e);
+    if(i>=0) S.picked.splice(i,1); else S.picked.push(e); render();
+  });
+  el.querySelectorAll("[data-ce]").forEach(x=>x.onclick=()=>{
+    const k="::"+x.dataset.ce; const i=S.picked.indexOf(k);
+    if(i>=0) S.picked.splice(i,1); else S.picked.push(k); render();
+  });
+  $("#cabHd").onclick=()=>{ S.cabinetOpen=!S.cabinetOpen; render(); };
+  $("#clr").onclick=()=>{ S.picked=[]; S.spices=[]; render(); };
+  $("#toss").onclick=()=>{
+    const p=$("#pan"); p.classList.remove("toss"); void p.offsetWidth; p.classList.add("toss");
+    roche.ui.toast("锵！颠勺～");
+  };
+  $("#cook").onclick=cookDish;
+  const cb=$("#cravBanner"); if(cb) cb.onclick=()=>{ S.cravingBanner=null; render(); };
+}
 
-    /* ---------- 料理台 ---------- */
-    function renderStove(el){
-      const foodDots = S.picked.map((p,i)=>{
-        const emo = p.startsWith("::") ? (S.custom.find(c=>c.id===p.slice(2))?.emoji || "🖼") : p;
-        const x = 30 + (i%5)*35 + Math.random()*8;
-        const y = 20 + Math.floor(i/5)*22;
-        return `<span style="left:${x}px;top:${y}px;">${emo}</span>`;
-      }).join("");
+/* ---------- 出锅 ---------- */
+async function cookDish(){
+  if(!S.picked.length||S.fire===0) return;
+  const dark=isDarkCombo(S.picked, S.spices);
+  showLoading(dark?"锅里发生了不祥的事…":"炒制中…", "🍙");
+  const parts=[], tastes=new Set(), textures=new Set(), vibes=new Set();
+  S.picked.forEach(e=>{
+    if(e.startsWith("::")){ const c=S.custom.find(x=>x.id===e.slice(2)); if(c) parts.push(`${c.name}(${c.desc||""})`); }
+    else { parts.push(e); const m=EMOJI_META[e]; if(m){tastes.add(m.t);textures.add(m.x);vibes.add(m.v);} }
+  });
+  S.spices.forEach(s=>{ const m=EMOJI_META[s]; if(m){tastes.add(m.t);textures.add(m.x);vibes.add(m.v);} });
+  const pot=POTS.find(p=>p.id===S.pot);
+  const fireLevel=["熄火","小火","中火","中大火","猛火"][S.fire];
+  const midnightHint=isLateNight?"\n（现在是深夜，请带治愈独处感）":"";
+  const darkHint=dark?"\n【重要】这是一道黑暗料理，请起一个诡异/中二/克苏鲁风的中文菜名，描述要有邪典恐怖感、卖相怪诞、功效离谱。":"";
 
-      el.innerHTML = `
-        ${S.cravingBanner ? `
-          <div class="craving" id="cravBanner">
-            ${S.cravingBanner.char.avatar?`<img src="${S.cravingBanner.char.avatar}">`:`<div style="width:36px;height:36px;border-radius:50%;background:#ddd;"></div>`}
-            <div><b>${S.cravingBanner.char.handle||S.cravingBanner.char.name}</b>：${S.cravingBanner.text}
-              <div style="font-size:11px;opacity:.7;">点击 → 立刻为它下厨</div></div>
-          </div>`:""}
-
-        <div class="stove-fixed">
-          <div class="stove">
-            <div class="pan-holder" id="pan">
-              ${panSVG(S.pot)}
-              <div class="pan-food">${foodDots}</div>
-            </div>
-            <div class="flame-holder" id="flame">${flameSVG(S.fire)}</div>
-            <div class="fx-layer" id="fxLayer"></div>
-          </div>
-          <div class="fire-ctrl">
-            <span>🚫</span>
-            <input type="range" min="0" max="4" value="${S.fire}" id="fire">
-            <span>猛🔥</span>
-            <span style="color:#999;font-size:11px;">${["熄火","小火","中火","中大火","猛火"][S.fire]}</span>
-          </div>
-        </div>
-
-        <div class="h">锅具</div>
-        <div class="row">${POTS.map(p=>`<div class="chip ${S.pot===p.id?"on":""}" data-pot="${p.id}">${p.name}·${p.tag}</div>`).join("")}</div>
-
-        <div class="h">工具（墙上挂着）</div>
-        <div class="row">${TOOLS.map(t=>`<div class="chip ${S.tool===t.id?"on":""}" data-tool="${t.id}">${t.id==="spatula"?"🥄":"🍶"} ${t.name}</div>`).join("")}</div>
-
-        <div class="h">调料·台面常用（点击加入并触发特效）</div>
-        <div class="grid">${SPICES_COMMON.map(s=>`<div class="cell ${S.spices.includes(s)?"on":""}" data-sp="${s}" title="${SPICE_FX[s]?.name||""}">${s}</div>`).join("")}</div>
-
-        <div class="cabinet">
-          <div class="hd" id="cabHd"><span>${S.cabinetOpen?"▼":"▶"} 柜子里的稀有调料</span><span style="opacity:.5;">${S.cabinetOpen?"收起":"打开"}</span></div>
-          ${S.cabinetOpen?`<div class="grid" style="margin-top:6px;">${SPICES_CABINET.map(s=>`<div class="cell ${S.spices.includes(s)?"on":""}" data-sp="${s}" title="${SPICE_FX[s]?.name||""}">${s}</div>`).join("")}</div>`:""}
-        </div>
-
-        <div class="h">食材</div>
-        ${Object.entries(FRIDGE).map(([cat,list])=>`
-          <div style="font-size:12px;color:#888;margin:6px 0 4px;">${cat}</div>
-          <div class="grid">${list.map(e=>`<div class="cell ${S.picked.includes(e)?"on":""}" data-e="${e}">${e}</div>`).join("")}</div>
-        `).join("")}
-        ${S.custom.length?`<div style="font-size:12px;color:#888;margin:8px 0 4px;">自定义</div>
-          <div class="grid">${S.custom.map(c=>`<div class="cell ${S.picked.includes("::"+c.id)?"on":""}" data-ce="${c.id}" title="${c.name}">${c.image?`<img src="${c.image}" style="width:100%;height:100%;border-radius:8px;object-fit:cover;">`:(c.emoji||"🖼")}</div>`).join("")}</div>`:""}
-
-        <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn" id="toss" ${S.picked.length===0||S.fire===0?"disabled":""}>🥢 颠勺</button>
-          <button class="btn" id="cook" ${S.picked.length===0||S.fire===0?"disabled":""}>🍳 出锅</button>
-          <button class="btn ghost" id="clr">清空</button>
-        </div>
-      `;
-
-      // 事件
-      const $=(s)=>el.querySelector(s);
-      $("#fire").oninput=(e)=>{ S.fire=+e.target.value; $("#flame").innerHTML=flameSVG(S.fire); el.querySelectorAll(".fire-ctrl span")[2].textContent=["熄火","小火","中火","中大火","猛火"][S.fire]; };
-      el.querySelectorAll("[data-pot]").forEach(x=>x.onclick=()=>{S.pot=x.dataset.pot;render();});
-      el.querySelectorAll("[data-tool]").forEach(x=>x.onclick=()=>{S.tool=x.dataset.tool;render();});
-      el.querySelectorAll("[data-sp]").forEach(x=>x.onclick=()=>{
-        const s=x.dataset.sp; const i=S.spices.indexOf(s);
-        if(i>=0){ S.spices.splice(i,1); render(); }
-        else { S.spices.push(s); render(); setTimeout(()=>playSpiceFx(s), 50); }
-      });
-      el.querySelectorAll("[data-e]").forEach(x=>x.onclick=()=>{
-        const e=x.dataset.e; const i=S.picked.indexOf(e);
-        if(i>=0) S.picked.splice(i,1); else S.picked.push(e); render();
-      });
-      el.querySelectorAll("[data-ce]").forEach(x=>x.onclick=()=>{
-        const k="::"+x.dataset.ce; const i=S.picked.indexOf(k);
-        if(i>=0) S.picked.splice(i,1); else S.picked.push(k); render();
-      });
-      $("#cabHd").onclick=()=>{ S.cabinetOpen=!S.cabinetOpen; render(); };
-      $("#clr").onclick=()=>{ S.picked=[]; S.spices=[]; render(); };
-      $("#toss").onclick=()=>{
-        const p=$("#pan"); p.classList.remove("toss"); void p.offsetWidth; p.classList.add("toss");
-        roche.ui.toast("锵！颠勺～");
-      };
-      $("#cook").onclick=cookDish;
-      const cb=$("#cravBanner"); if(cb) cb.onclick=()=>{ S.cravingBanner=null; render(); };
-    }
-
-    /* ---------- 出锅 ---------- */
-    async function cookDish(){
-      if(!S.picked.length||S.fire===0) return;
-      const parts=[], tastes=new Set(), textures=new Set(), vibes=new Set();
-      S.picked.forEach(e=>{
-        if(e.startsWith("::")){ const c=S.custom.find(x=>x.id===e.slice(2)); if(c) parts.push(`${c.name}(${c.desc||""})`); }
-        else { parts.push(e); const m=EMOJI_META[e]; if(m){tastes.add(m.t);textures.add(m.x);vibes.add(m.v);} }
-      });
-      S.spices.forEach(s=>{ const m=EMOJI_META[s]; if(m){tastes.add(m.t);textures.add(m.x);vibes.add(m.v);} });
-      const pot = POTS.find(p=>p.id===S.pot);
-      const fireLevel = ["熄火","小火","中火","中大火","猛火"][S.fire];
-      roche.ui.toast(`${fireLevel} · ${pot.name}炒制中...`);
-
-      const midnightHint = isLateNight ? "\n（现在是深夜，做出的菜请带一点治愈、独处、温暖的深夜食堂感）" : "";
-      let dish={name:"神秘料理",desc:"",effect:"",appearance:""};
-      try{
-        const res=await roche.ai.chat({messages:[
-          {role:"system",content:`你是会取名的厨师。根据食材、调料、锅具、火候起中文菜名。JSON：{"name":"","desc":"","effect":"","appearance":""}${midnightHint}`},
-          {role:"user",content:`食材：${parts.join("、")}\n调料：${S.spices.map(s=>SPICE_FX[s]?.name||s).join("、")||"无"}\n锅具：${pot.name}(${pot.tag})\n火候：${fireLevel}\n工具：${S.tool}`}
-        ],temperature:0.9});
-        const m=(res.text||"").match(/\{[\s\S]*\}/); if(m) Object.assign(dish, JSON.parse(m[0]));
-      }catch{
-        dish.name = S.picked.filter(x=>!x.startsWith("::")).slice(0,3).join("") + pot.tag;
-        dish.desc = `${fireLevel}下用${pot.name}${pot.tag}成的一道菜。`;
-      }
-
-      const rec={ id:crypto.randomUUID(), name:dish.name, desc:dish.desc,
-        emojis:[...S.picked], spices:[...S.spices], pot:S.pot, tool:S.tool, fire:S.fire,
-        taste:[...tastes].join("/")||"未知", texture:[...textures].join("/")||"未知",
-        vibe:[...vibes].join("/")||"神秘", effect:dish.effect, appearance:dish.appearance,
-        midnight:isLateNight, createdAt:Date.now() };
-      S.recipes.unshift(rec); await roche.storage.set("recipes", S.recipes);
-      S.picked=[]; S.spices=[]; roche.ui.toast(`✅ 出锅：${rec.name}`);
-      // 讨菜的 Char 得到满足后，自动跳到投喂
-      if(S.cravingBanner){
-        S.pendingDish = rec;
-        const cravChar = S.cravingBanner.char;
-        S.cravingBanner = null;
-        S.tab="feed"; render();
-        setTimeout(()=>feedToChar(rec, cravChar), 300);
-        return;
-      }
-      S.tab="book"; render();
-    }
-
-    /* ---------- 菜谱 ---------- */
-    function renderBook(el){
-      if(!S.recipes.length){ el.innerHTML=`<div style="text-align:center;color:#aaa;padding:40px;">还没有菜，去料理台炒一个</div>`; return; }
-      el.innerHTML = S.recipes.map(r=>`
-        <div class="card">
-          <div class="dish-emo">${r.emojis.map(e=>e.startsWith("::")?"🖼":e).join(" ")}${r.spices?.length?" · "+r.spices.join(""):""}</div>
-          <div class="dish-name">${r.name}${r.midnight?' <span style="font-size:10px;color:#ffb86b;">🌙</span>':""}</div>
-          <div style="font-size:13px;color:#666;">${r.desc||""}</div>
-          <div style="margin-top:6px;">
-            <span class="tag">🍳 ${POTS.find(p=>p.id===r.pot)?.name||"锅"}</span>
-            <span class="tag">🔥 ${["熄","小","中","中大","猛"][r.fire||2]}火</span>
-            <span class="tag">味 ${r.taste}</span><span class="tag">感 ${r.texture}</span><span class="tag">氛 ${r.vibe}</span>
-          </div>
-          ${r.effect?`<div style="font-size:12px;color:#888;margin-top:4px;">✨ ${r.effect}</div>`:""}
-          ${r.appearance?`<div style="font-size:12px;color:#888;">🎨 ${r.appearance}</div>`:""}
-          <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
-            <button class="btn" data-act="feed" data-id="${r.id}">🥄 投喂</button>
-            <button class="btn ghost" data-act="plate" data-id="${r.id}">🍽 放盘</button>
-            <button class="btn ghost" data-act="gift" data-id="${r.id}">🎁 送给 Char</button>
-            <button class="btn ghost" data-act="del" data-id="${r.id}">删除</button>
-          </div>
-        </div>`).join("");
-      el.querySelectorAll("[data-act]").forEach(b=>b.onclick=async()=>{
-        const r=S.recipes.find(x=>x.id===b.dataset.id); if(!r) return;
-        const a=b.dataset.act;
-        if(a==="del"){ S.recipes=S.recipes.filter(x=>x.id!==r.id); await roche.storage.set("recipes",S.recipes); render(); }
-        else if(a==="plate"){ S.plate.push(r); roche.ui.toast("已放到盘子"); }
-        else if(a==="feed"){ S.pendingDish=r; S.tab="feed"; render(); }
-        else if(a==="gift"){ giftToChar(r); }
-      });
-    }
-
-    async function giftToChar(dish){
-      let chars=[]; try{ chars=await roche.character.list(); }catch{}
-      if(!chars.length){ roche.ui.toast("没有 Char"); return; }
-      const pick = await roche.ui.select?.({title:"送给谁？",options:chars.map(c=>({label:c.handle||c.name,value:c.id}))});
-      const target = chars.find(c=>c.id===(pick?.value||pick)) || chars[0];
-      const text = `🎁 ${target.handle||target.name}，送你一道亲手做的【${dish.name}】\n${dish.emojis.join(" ")}\n${dish.desc||""}`;
-      try{
-        if(roche.chat?.send) await roche.chat.send({conversationId:target.conversationId, text});
-        else if(roche.character?.sendMessage) await roche.character.sendMessage({charId:target.id, text});
-        else throw 0;
-        roche.ui.toast("已发出 💌");
-      }catch{ navigator.clipboard?.writeText(text); roche.ui.toast("已复制到剪贴板"); }
-    }
-
-    /* ---------- 投喂 ---------- */
-    async function renderFeed(el){
-      el.innerHTML=`<div style="text-align:center;color:#aaa;padding:20px;">读取 Char 中...</div>`;
-      let chars=[]; try{ chars=await roche.character.list(); }catch{}
-      const dish = S.pendingDish;
-      el.innerHTML = `
-        ${dish?`<div class="card"><div class="dish-emo">${dish.emojis.join(" ")}</div><div class="dish-name">🥄 准备投喂：${dish.name}</div></div>`
-          :`<div style="text-align:center;color:#aaa;padding:20px;">先在【菜谱】点【投喂】选一道菜</div>`}
-        <div class="h">选一位 Char</div>
-        ${chars.length? chars.map(c=>`
-          <div class="card" data-cid="${c.id}" style="cursor:pointer;display:flex;gap:10px;align-items:center;">
-            ${c.avatar?`<img src="${c.avatar}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">`:`<div style="width:44px;height:44px;border-radius:50%;background:#ddd;"></div>`}
-            <div><div style="font-weight:700;">${c.handle||c.name}</div>
-            <div style="font-size:12px;color:#888;">${(c.bio||"").slice(0,40)}</div></div>
-          </div>`).join("") : `<div style="color:#aaa;text-align:center;padding:20px;">没有 Char</div>`}
-        ${S.chatWith?renderChatBox():""}`;
-      el.querySelectorAll("[data-cid]").forEach(c=>c.onclick=()=>{
-        if(!dish){ roche.ui.toast("先选菜"); return; }
-        feedToChar(dish, chars.find(x=>x.id===c.dataset.cid));
-      });
-      if(S.chatWith){
-        el.querySelector("#chatSend").onclick=()=>sendChat(el);
-        el.querySelector("#chatInput").onkeydown=(e)=>{ if(e.key==="Enter") sendChat(el); };
-        el.querySelector("#chatDone").onclick=onChatDone;
-      }
-    }
-    function renderChatBox(){
-      return `<div class="h">💬 和 ${S.chatWith.name} 继续聊聊这道菜</div>
-        <div class="chat-log">${S.chatLog.map(m=>`<div class="chat-msg ${m.role==='user'?'me':'other'}">${m.text}</div>`).join("")}</div>
-        <div class="chat-in"><input id="chatInput" placeholder="想说什么..."><button class="btn" id="chatSend">发送</button></div>
-        <div style="margin-top:8px;"><button class="btn ghost" id="chatDone">结束投喂</button></div>`;
-    }
-    async function feedToChar(dish, char){
-      roche.ui.toast(`把 ${dish.name} 递给 ${char.handle||char.name}...`);
-      let reply="",choice="吃";
-      try{
-        const res=await roche.ai.chat({messages:[
-          {role:"system",content:`你扮演「${char.name||char.handle}」。人设：${char.persona||char.bio||""}\nuser 端菜给你，从「吃/不吃/只尝一口/打翻/珍藏起来/其他」挑一种反应，写角色化评价。JSON：{"choice":"","comment":""}`},
-          {role:"user",content:`菜名：${dish.name}\n${dish.desc||""}\n味:${dish.taste} 感:${dish.texture} 氛:${dish.vibe}`}
-        ],temperature:1.0});
-        const m=(res.text||"").match(/\{[\s\S]*\}/);
-        if(m){ const j=JSON.parse(m[0]); choice=j.choice||choice; reply=j.comment||""; } else reply=res.text||"";
-      }catch{ reply="（Char 沉默地看着这道菜）"; }
-      S.feeds.unshift({ id:crypto.randomUUID(), charId:char.id, charName:char.handle||char.name,
-        dishId:dish.id, dishName:dish.name, dishEmojis:dish.emojis, choice, reaction:reply, createdAt:Date.now() });
-      await roche.storage.set("feedRecords", S.feeds);
-      S.chatWith={ id:char.id, name:char.handle||char.name, char, dish };
-      S.chatLog=[{role:"assistant",text:`（${choice}）${reply}`}];
-      S.pendingDish=null; render();
-    }
-    async function sendChat(el){
-      const inp=el.querySelector("#chatInput"); const t=inp.value.trim(); if(!t) return;
-      inp.value=""; S.chatLog.push({role:"user",text:t}); render();
-      try{
-        const res=await roche.ai.chat({messages:[
-          {role:"system",content:`你扮演「${S.chatWith.name}」。刚吃了「${S.chatWith.dish.name}」，继续和 user 聊天，保持角色。`},
-          ...S.chatLog.map(m=>({role:m.role,content:m.text}))
-        ],temperature:0.9});
-        S.chatLog.push({role:"assistant",text:res.text||"..."}); render();
-      }catch{ S.chatLog.push({role:"assistant",text:"（沉默）"}); render(); }
-    }
-    async function onChatDone(){
-      const keep = await roche.ui.confirm({title:"保留这段投喂记忆？", message:`要把和 ${S.chatWith.name} 的这段厨房对话作为记忆保留下来吗？\n（选「否」将丢弃聊天，只保留最初评价）`});
-      if(keep){
-        try{
-          const sum=await roche.ai.chat({messages:[
-            {role:"system",content:"用一句 ≤60 字的话总结这段厨房投喂对话，作为角色事实记忆。"},
-            {role:"user",content:S.chatLog.map(m=>`${m.role}:${m.text}`).join("\n")}
-          ]});
-          const text=(sum.text||"").trim();
-          if(S.chatWith.char.conversationId && roche.memory?.write){
-            await roche.memory.write({ conversationId:S.chatWith.char.conversationId, summaryText:text,
-              who:[S.chatWith.name,"user"], action:text, when:"厨房投喂", where:"Char 的厨房", source:"plugin:char-kitchen" });
-            roche.ui.toast("✅ 已写入主记忆");
-          }
-        }catch{ roche.ui.toast("记忆写入失败"); }
-      } else roche.ui.toast("这段对话已丢弃");
-      S.chatWith=null; S.chatLog=[]; render();
-    }
-
-    /* ---------- 冰箱 ---------- */
-    function renderFridge(el){
-      el.innerHTML=`
-        <div style="margin:8px 0;display:flex;gap:8px;">
-          <button class="btn ghost" id="addImg">➕ 导入图片食材</button>
-          <button class="btn ghost" id="addEmo">➕ 输入 Emoji</button>
-        </div>
-        <div class="fridge-wrap">
-          ${S.fridgeOpen?`
-            <div class="fridge-in">
-              ${Object.entries(FRIDGE).map(([cat,list])=>`
-                <div class="sec"><div class="sec-title">${cat}</div>
-                  <div class="row-scroll">${list.map(e=>`<div class="cell" data-e="${e}">${e}</div>`).join("")}</div></div>`).join("")}
-              ${S.custom.length?`<div class="sec"><div class="sec-title">自定义</div>
-                <div class="row-scroll">${S.custom.map(c=>`<div class="cell" data-ce="${c.id}" title="${c.name}">${c.image?`<img src="${c.image}" style="width:100%;height:100%;border-radius:8px;object-fit:cover;">`:(c.emoji||"🖼")}</div>`).join("")}</div></div>`:""}
-              <div class="sec"><div class="sec-title">🍽 已做的菜（可再选）</div>
-                <div class="row-scroll">${S.recipes.length?S.recipes.map(r=>`<div class="cell" data-r="${r.id}" title="${r.name}" style="font-size:18px;">${r.emojis[0]||"🍽"}</div>`).join(""):`<span style="color:#aaa;font-size:11px;">还没菜</span>`}</div></div>
-            </div>`:""}
-          <div class="fridge-door ${S.fridgeOpen?"open":""}" id="door">${S.fridgeOpen?"":"🧊"}</div>
-        </div>
-        <div class="h">🍽 盘子</div>
-        <div class="plate ${S.plate.length?"":"empty"}">${S.plate.length? S.plate.map(x=>typeof x==="string"?(x.startsWith("::")?"🖼":x):(x.emojis?.[0]||"🍽")).join(" "):"（空盘子，点冰箱里的东西放进来）"}</div>
-        <div style="text-align:center;margin-top:8px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
-          <button class="btn" id="plateGift" ${S.plate.length?"":"disabled"}>🎁 送给 Char</button>
-          <button class="btn ghost" id="platePan" ${S.plate.length?"":"disabled"}>♻️ 全部回锅</button>
-          <button class="btn ghost" id="plateClr" ${S.plate.length?"":"disabled"}>🗑 清空</button>
-        </div>`;
-      el.querySelector("#door").onclick=()=>{ S.fridgeOpen=!S.fridgeOpen; render(); };
-      el.querySelectorAll("[data-e]").forEach(x=>x.onclick=()=>{ S.plate.push(x.dataset.e); render(); });
-      el.querySelectorAll("[data-ce]").forEach(x=>x.onclick=()=>{ S.plate.push("::"+x.dataset.ce); render(); });
-      el.querySelectorAll("[data-r]").forEach(x=>x.onclick=()=>{ const r=S.recipes.find(y=>y.id===x.dataset.r); if(r) S.plate.push(r); render(); });
-      el.querySelector("#addImg").onclick=importImage;
-      el.querySelector("#addEmo").onclick=importEmoji;
-      el.querySelector("#plateClr").onclick=()=>{ S.plate=[]; render(); };
-      el.querySelector("#platePan").onclick=()=>{
-        S.plate.forEach(p=>{ if(typeof p==="string") S.picked.push(p); });
-        S.plate=[]; S.tab="stove"; render(); roche.ui.toast("已回锅");
-      };
-      el.querySelector("#plateGift").onclick=giftPlateToChar;
-    }
-    async function giftPlateToChar(){
-      if(!S.plate.length) return;
-      let chars=[]; try{ chars=await roche.character.list(); }catch{}
-      if(!chars.length){ roche.ui.toast("没有 Char"); return; }
-      const pick = await roche.ui.select?.({title:"送给谁？",options:chars.map(c=>({label:c.handle||c.name,value:c.id}))});
-      const target = chars.find(c=>c.id===(pick?.value||pick)) || chars[0];
-      const dishes=S.plate.filter(x=>typeof x!=="string");
-      const raws=S.plate.filter(x=>typeof x==="string");
-      const text=`🍽 送给 ${target.handle||target.name} 一盘：\n${dishes.map(d=>`【${d.name}】${d.emojis.join("")}`).join("\n")}${raws.length?`\n配菜：${raws.join(" ")}`:""}`;
-      try{
-        if(roche.chat?.send) await roche.chat.send({conversationId:target.conversationId, text});
-        else if(roche.character?.sendMessage) await roche.character.sendMessage({charId:target.id, text});
-        else { navigator.clipboard?.writeText(text); roche.ui.toast("已复制到剪贴板"); return; }
-        roche.ui.toast("已送出 💌"); S.plate=[]; render();
-      }catch{ roche.ui.toast("发送失败"); }
-    }
-    async function importImage(){
-      const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*";
-      inp.onchange=async()=>{
-        const f=inp.files[0]; if(!f) return;
-        const name=prompt("食材名字：","自制食材"); if(!name) return;
-        const desc=prompt("描述（可留空）：","")||"";
-        const image=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(f);});
-        S.custom.push({id:crypto.randomUUID(),name,desc,image});
-        await roche.storage.set("customIngredients",S.custom); render();
-      }; inp.click();
-    }
-    async function importEmoji(){
-      const e=prompt("输入一个 emoji 作为食材："); if(!e) return;
-      const name=prompt("名字：",e)||e;
-      S.custom.push({id:crypto.randomUUID(),name,desc:"",image:"",emoji:e});
-      await roche.storage.set("customIngredients",S.custom); render();
-    }
-
-    /* ---------- 设置 ---------- */
-    function renderSet(el){
-      el.innerHTML=`
-        <div class="h">🎨 主题${isLateNight?"（当前深夜，默认已切 night）":""}</div>
-        <div class="row">${Object.keys(THEMES).map(k=>`<div class="chip ${S.theme===k?"on":""}" data-th="${k}">${k}</div>`).join("")}</div>
-        <div class="h">👥 Char 互动</div>
-        <div class="row"><button class="btn ghost" id="callChar">📞 随机呼叫一位 Char 来讨菜</button></div>
-        <div class="h">🧹 数据清理</div>
-        <div class="row">
-          <button class="btn ghost" id="clrPics">清除所有自定义食材图片</button>
-          <button class="btn ghost" id="clrOne">单个清除图片</button>
-        </div>
-        <div class="h">📊 存储情况</div>
-        <div class="card" style="font-size:13px;line-height:1.8;">
-          菜谱：${S.recipes.length} 条<br>投喂：${S.feeds.length} 条<br>
-          自定义食材：${S.custom.length} 个（其中带图 ${S.custom.filter(c=>c.image).length} 个）
-        </div>
-        <div class="h">☠️ 危险区</div>
-        <div class="row"><button class="btn ghost" id="wipeAll" style="color:#c33;border-color:#c33;">清空全部厨房数据</button></div>`;
-      el.querySelectorAll("[data-th]").forEach(b=>b.onclick=async()=>{
-        S.theme=b.dataset.th; await roche.storage.set("theme",S.theme); render();
-      });
-      el.querySelector("#callChar").onclick=async()=>{
-        S.cravingBanner=null; await maybeCraving_force(); S.tab="stove"; render();
-      };
-      el.querySelector("#clrPics").onclick=async()=>{
-        if(!await roche.ui.confirm({title:"确认",message:"清除所有自定义食材的图片数据？食材本身保留。"}))return;
-        S.custom=S.custom.map(c=>({...c,image:""}));
-        await roche.storage.set("customIngredients",S.custom); render();
-      };
-      el.querySelector("#clrOne").onclick=async()=>{
-        const withImg=S.custom.filter(c=>c.image);
-        if(!withImg.length){ roche.ui.toast("没有带图的食材"); return; }
-        const pick=await roche.ui.select?.({title:"清除哪个？",options:withImg.map(c=>({label:c.name,value:c.id}))});
-        const id=pick?.value||pick; if(!id) return;
-        S.custom=S.custom.map(c=>c.id===id?{...c,image:""}:c);
-        await roche.storage.set("customIngredients",S.custom); render();
-      };
-      el.querySelector("#wipeAll").onclick=async()=>{
-        if(!await roche.ui.confirm({title:"⚠️ 清空全部",message:"菜谱、投喂、自定义食材都会删除，不可恢复。继续？"}))return;
-        S.recipes=[];S.feeds=[];S.custom=[];S.plate=[];
-        await roche.storage.set("recipes",[]); await roche.storage.set("feedRecords",[]); await roche.storage.set("customIngredients",[]);
-        render();
-      };
-    }
-    async function maybeCraving_force(){
-      try{
-        const chars=await roche.character.list();
-        if(!chars.length){ roche.ui.toast("没有 Char"); return; }
-        const c=chars[Math.floor(Math.random()*chars.length)];
-        const res=await roche.ai.chat({messages:[
-          {role:"system",content:`你扮演「${c.name||c.handle}」。人设：${c.persona||c.bio||""}\n主动来 user 的厨房讨吃的，写一句短短的、带角色语气的讨菜台词（≤30字），不要引号。`},
-          {role:"user",content:"你想吃什么？"}
-        ],temperature:1.1});
-        S.cravingBanner={ char:c, text:(res.text||"").trim()||"肚子饿了…做点吃的？" };
-      }catch{ roche.ui.toast("呼叫失败"); }
-    }
-
-    render();
-    maybeCraving();
-  },
-  async unmount(container){
-    document.querySelectorAll('style[data-plugin="char-kitchen"]').forEach(s=>s.remove());
-    container.replaceChildren();
+  let dish={name:"神秘料理",desc:"",effect:"",appearance:""};
+  try{
+    const res=await roche.ai.chat({messages:[
+      {role:"system",content:`你是会取名的厨师。根据食材、调料、锅具、火候起中文菜名。JSON：{"name":"","desc":"","effect":"","appearance":""}${midnightHint}${darkHint}`},
+      {role:"user",content:`食材：${parts.join("、")}\n调料：${S.spices.map(s=>SPICE_FX[s]?.name||s).join("、")||"无"}\n锅具：${pot.name}(${pot.tag})\n火候：${fireLevel}\n工具：${S.tool}`}
+    ],temperature:0.9});
+    const m=(res.text||"").match(/\{[\s\S]*\}/); if(m) Object.assign(dish, JSON.parse(m[0]));
+  }catch{
+    dish.name=(dark?"☠️":"")+S.picked.filter(x=>!x.startsWith("::")).slice(0,3).join("")+pot.tag;
+    dish.desc=`${fireLevel}下用${pot.name}${pot.tag}成的一道${dark?"诡异":""}菜。`;
   }
-  }]
-});
+
+  const rec={
+    id:crypto.randomUUID(), name:dish.name, desc:dish.desc,
+    emojis:[...S.picked], spices:[...S.spices],
+    pot:S.pot, tool:S.tool, fire:S.fire,
+    taste:[...tastes].join("/")||"未知", texture:[...textures].join("/")||"未知", vibe:[...vibes].join("/")||"神秘",
+    effect:dish.effect, appearance:dish.appearance,
+    midnight:isLateNight, dark, createdAt:Date.now(),
+  };
+  // 去重
+  const key=(r)=>`${r.name}|${[...r.emojis].sort().join(",")}|${[...(r.spices||[])].sort().join(",")}`;
+  const dupe=S.recipes.find(r=>key(r)===key(rec));
+  if(!dupe){ S.recipes.unshift(rec); await roche.storage.set("recipes",S.recipes); }
+  hideLoading();
+  if(dupe){ roche.ui.toast("这道菜之前做过啦，已跳过重复"); }
+  await showCongrats(rec, dark);
+  S.picked=[]; S.spices=[];
+
+  if(S.cravingBanner){
+    S.pendingDish=rec; const cravChar=S.cravingBanner.char; S.cravingBanner=null;
+    S.tab="feed"; render();
+    setTimeout(()=>feedToChar(rec, cravChar), 300); return;
+  }
+  S.tab="book"; render();
+}
+
+/* ---------- 菜谱 ---------- */
+function renderBook(el){
+  if(!S.recipes.length){
+    el.innerHTML=`<div style="text-align:center;color:#aaa;padding:40px;">还没有菜，去料理台炒一个</div>`;
+    return;
+  }
+  el.innerHTML=`
+  <div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0 10px;">
+    <div style="font-size:12px;color:#888;">共 ${S.recipes.length} 道菜</div>
+    <button class="btn ghost" id="dedup" style="font-size:12px;padding:5px 10px;">🧹 一键去重</button>
+  </div>
+  ${S.recipes.map(r=>`
+    <div class="card ${r.dark?"dark":""}">
+      <div class="dish-emo">${r.emojis.map(e=>e.startsWith("::")?"🖼":e).join(" ")}${r.spices?.length?" · "+r.spices.join(""):""}</div>
+      <div class="dish-name">${r.dark?"☠️ ":""}${r.name}${r.midnight?' <span style="font-size:10px;color:#ffb86b;">🌙</span>':""}</div>
+      <div style="font-size:13px;opacity:.85;">${r.desc||""}</div>
+      <div style="margin-top:6px;">
+        <span class="tag">🍳 ${POTS.find(p=>p.id===r.pot)?.name||"锅"}</span>
+        <span class="tag">🔥 ${["熄","小","中","中大","猛"][r.fire||2]}火</span>
+        <span class="tag">味 ${r.taste}</span><span class="tag">感 ${r.texture}</span><span class="tag">氛 ${r.vibe}</span>
+      </div>
+      ${r.effect?`<div style="font-size:12px;opacity:.75;margin-top:4px;">✨ ${r.effect}</div>`:""}
+      ${r.appearance?`<div style="font-size:12px;opacity:.75;">🎨 ${r.appearance}</div>`:""}
+      <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="btn" data-act="feed" data-id="${r.id}">🥄 投喂</button>
+        <button class="btn ghost" data-act="gift" data-id="${r.id}">🎁 送给 Char</button>
+        <button class="btn ghost" data-act="del" data-id="${r.id}">删除</button>
+      </div>
+    </div>`).join("")}`;
+  el.querySelector("#dedup").onclick=async()=>{
+    const seen=new Set(), keep=[];
+    const key=(r)=>`${r.name}|${[...r.emojis].sort().join(",")}|${[...(r.spices||[])].sort().join(",")}`;
+    S.recipes.forEach(r=>{ const k=key(r); if(!seen.has(k)){ seen.add(k); keep.push(r); } });
+    const removed=S.recipes.length-keep.length;
+    S.recipes=keep; await roche.storage.set("recipes",S.recipes);
+    roche.ui.toast(removed?`已移除 ${removed} 道重复菜`:"没有发现重复"); render();
+  };
+  el.querySelectorAll("[data-act]").forEach(b=>b.onclick=async()=>{
+    const r=S.recipes.find(x=>x.id===b.dataset.id); if(!r) return;
+    const a=b.dataset.act;
+    if(a==="del"){ S.recipes=S.recipes.filter(x=>x.id!==r.id); await roche.storage.set("recipes",S.recipes); render(); }
+    else if(a==="feed"){ S.pendingDish=r; S.tab="feed"; render(); }
+    else if(a==="gift"){ giftToChar(r); }
+  });
+}
+
+async function giftToChar(dish){
+  let chars=[]; try{ chars=await roche.character.list(); }catch{}
+  if(!chars.length){ roche.ui.toast("没有 Char"); return; }
+  const pick=await roche.ui.select?.({title:"送给谁？",options:chars.map(c=>({label:c.handle||c.name,value:c.id}))});
+  const target=chars.find(c=>c.id===(pick?.value||pick))||chars[0];
+  const text=`🎁 ${target.handle||target.name}，送你【${dish.name}】\n${dish.emojis.join(" ")}\n${dish.desc||""}`;
+  try{
+    if(roche.chat?.send) await roche.chat.send({conversationId:target.conversationId,text});
+    else if(roche.character?.sendMessage) await roche.character.sendMessage({charId:target.id,text});
+    else throw 0;
+    roche.ui.toast("已发出 💌");
+  }catch{ navigator.clipboard?.writeText(text); roche.ui.toast("已复制到剪贴板"); }
+}
+
+/* ---------- 投喂：Char 列表 or 聊天页 ---------- */
+async function renderFeed(el){
+  if(S.chatWith){ renderChatPage(el); return; }
+  el.innerHTML=`<div style="text-align:center;color:#aaa;padding:20px;">读取 Char 中...</div>`;
+  let chars=[]; try{ chars=await roche.character.list(); }catch{}
+  const dish=S.pendingDish;
+  el.innerHTML=`
+    ${dish?`<div class="card"><div class="dish-emo">${dish.emojis.join(" ")}</div><div class="dish-name">🥄 准备投喂：${dish.name}</div></div>`
+      :`<div style="text-align:center;color:#aaa;padding:20px;">先在【菜谱】选一道菜点【投喂】</div>`}
+    <div class="h"><span>选一位 Char</span></div>
+    ${chars.length?chars.map(c=>`
+      <div class="card" data-cid="${c.id}" style="cursor:pointer;display:flex;gap:10px;align-items:center;">
+        ${c.avatar?`<img src="${c.avatar}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">`:`<div style="width:44px;height:44px;border-radius:50%;background:#ddd;"></div>`}
+        <div><div style="font-weight:700;">${c.handle||c.name}</div>
+        <div style="font-size:12px;color:#888;">${(c.bio||"").slice(0,40)}</div></div>
+      </div>`).join(""):`<div style="color:#aaa;text-align:center;padding:20px;">没有 Char</div>`}`;
+  el.querySelectorAll("[data-cid]").forEach(c=>c.onclick=()=>{
+    if(!dish){ roche.ui.toast("先选菜"); return; }
+    feedToChar(dish, chars.find(x=>x.id===c.dataset.cid));
+  });
+}
+
+async function feedToChar(dish, char){
+  showLoading(`把 ${dish.name} 递给 ${char.handle||char.name}…`, "🍙");
+  let payload={eaten:"吃了", mood:"平静", inner:"…", feeling:"这是一道菜。"};
+  try{
+    const res=await roche.ai.chat({messages:[
+      {role:"system",content:`你扮演角色「${char.name||char.handle}」。人设：${char.persona||char.bio||""}\nuser 端了一道${dish.dark?"看起来非常诡异的黑暗":""}料理给你。请严格输出 JSON：{"eaten":"","mood":"","inner":"","feeling":""}\n字段含义：\n- eaten：吃没吃（例：吃了 / 只尝了一口 / 拒绝了 / 打翻了 / 珍藏起来 / 吐出来了）\n- mood：现在的心情（一两个词，如：开心 / 恶心 / 感动 / 平静）\n- inner：心声（角色内心 OS，1-2 句）\n- feeling：吃后感受/评价（1-2 句，角色化描述口感味道）`},
+      {role:"user",content:`菜名：${dish.name}${dish.dark?"（⚠️ 黑暗料理）":""}\n${dish.desc||""}\n味:${dish.taste} 感:${dish.texture} 氛:${dish.vibe}`}
+    ],temperature:1.0});
+    const m=(res.text||"").match(/\{[\s\S]*\}/); if(m) Object.assign(payload, JSON.parse(m[0]));
+  }catch{}
+  hideLoading();
+  S.feeds.unshift({
+    id:crypto.randomUUID(), charId:char.id, charName:char.handle||char.name,
+    dishId:dish.id, dishName:dish.name, dishEmojis:dish.emojis,
+    ...payload, createdAt:Date.now()
+  });
+  await roche.storage.set("feedRecords",S.feeds);
+  S.chatWith={char, dish, status:payload};
+  S.chatLog=[{role:"assistant", text:payload.feeling}];
+  S.pendingDish=null;
+  render();
+}
+
+function renderChatPage(el){
+  const {char, dish, status}=S.chatWith;
+  el.innerHTML=`<div class="chat-page">
+    <div class="chat-head">
+      ${char.avatar?`<img src="${char.avatar}">`:`<div style="width:56px;height:56px;border-radius:50%;background:#ddd;"></div>`}
+      <div class="info">
+        <div class="name">${char.handle||char.name}</div>
+        <div class="sub">吃了：【${dish.name}】 ${dish.emojis.slice(0,3).join("")}</div>
+      </div>
+      <button class="btn ghost" id="chatDone">结束投喂</button>
+    </div>
+    <div class="status-grid">
+      <div class="status-cell"><div class="lbl">🍽 是否吃了</div>${status.eaten||"—"}</div>
+      <div class="status-cell"><div class="lbl">💗 心情</div>${status.mood||"—"}</div>
+      <div class="status-cell" style="grid-column:span 2;"><div class="lbl">💭 心声</div>${status.inner||"—"}</div>
+      <div class="status-cell" style="grid-column:span 2;"><div class="lbl">👅 感受</div>${status.feeling||"—"}</div>
+    </div>
+    <div class="chat-log" id="chatLog">
+      ${S.chatLog.map(m=>`<div class="chat-msg ${m.role==='user'?'me':'other'}">${m.text}</div>`).join("")}
+    </div>
+    <div class="chat-in">
+      <input id="chatInput" placeholder="和 ${char.handle||char.name} 聊聊这道菜…">
+      <button class="btn" id="chatSend">发送</button>
+    </div>
+  </div>`;
+  el.querySelector("#chatSend").onclick=()=>sendChat(el);
+  el.querySelector("#chatInput").onkeydown=(e)=>{ if(e.key==="Enter") sendChat(el); };
+  el.querySelector("#chatDone").onclick=onChatDone;
+  const log=el.querySelector("#chatLog"); log.scrollTop=log.scrollHeight;
+}
+
+async function sendChat(el){
+  const inp=el.querySelector("#chatInput"); const t=inp.value.trim(); if(!t) return;
+  inp.value=""; S.chatLog.push({role:"user",text:t}); render();
+  try{
+    const {char, dish}=S.chatWith;
+    const res=await roche.ai.chat({messages:[
+      {role:"system",content:`你扮演「${char.name||char.handle}」。人设：${char.persona||char.bio||""}\n刚吃了「${dish.name}」${dish.dark?"（一道黑暗料理）":""}，继续和 user 聊天，保持角色语气。`},
+      ...S.chatLog.map(m=>({role:m.role,content:m.text}))
+    ],temperature:0.9});
+    S.chatLog.push({role:"assistant",text:res.text||"..."});
+  }catch{ S.chatLog.push({role:"assistant",text:"（沉默）"}); }
+  render();
+}
+
+async function onChatDone(){
+  const {char, dish}=S.chatWith;
+  // 1. 结束感想（一定弹）
+  showLoading(`${char.handle||char.name} 想说点什么…`, "🍙");
+  let finalWords="（Ta 抬眼看了看你，没说话。）";
+  try{
+    const res=await roche.ai.chat({messages:[
+      {role:"system",content:`你扮演「${char.name||char.handle}」。人设：${char.persona||char.bio||""}\n你刚吃了 user 做的「${dish.name}」并聊了一会儿。现在 user 要结束投喂了，请用角色语气写一段"结束感想"（2-3 句，可以是道谢、吐槽、期待下一次…）。不要引号。`},
+      {role:"user",content:S.chatLog.map(m=>`${m.role}:${m.text}`).join("\n")}
+    ],temperature:0.9});
+    finalWords=(res.text||"").trim()||finalWords;
+  }catch{}
+  hideLoading();
+  await roche.ui.confirm({title:`${char.handle||char.name} 的结束感想`, message:finalWords});
+
+  // 2. 询问是否总结记忆
+  const wantSum=await roche.ui.confirm({title:"总结这段投喂记忆？", message:"要把这次投喂+对话总结成一段记忆吗？"});
+  if(wantSum){
+    showLoading("正在总结记忆…", "🍙");
+    let text=`${char.handle||char.name} 被 user 投喂了「${dish.name}」`;
+    try{
+      const sum=await roche.ai.chat({messages:[
+        {role:"system",content:"用一段 ≤80 字的温暖话总结这次厨房投喂对话，作为角色事实记忆。"},
+        {role:"user",content:`菜：${dish.name}\n结束感想：${finalWords}\n对话：\n${S.chatLog.map(m=>`${m.role}:${m.text}`).join("\n")}`}
+      ]});
+      text=(sum.text||"").trim()||text;
+    }catch{}
+    hideLoading();
+    // 3. 可编辑弹窗
+    const edited=await editableDialog("📝 编辑记忆后再写入", text);
+    if(edited && char.conversationId && roche.memory?.write){
+      try{
+        await roche.memory.write({
+          conversationId:char.conversationId,
+          summaryText:edited,
+          who:[char.handle||char.name,"user"],
+          action:edited, when:"厨房投喂", where:"Char 的厨房",
+          source:"plugin:char-kitchen"
+        });
+        roche.ui.toast("✅ 已写入记忆库");
+      }catch{ roche.ui.toast("写入失败"); }
+    } else if(edited===null){
+      roche.ui.toast("已取消写入");
+    }
+  }
+  S.chatWith=null; S.chatLog=[]; render();
+}
+
+/* ---------- 自定义食材 Tab ---------- */
+function renderCustom(el){
+  el.innerHTML=`
+    <div class="h"><span>🖼 添加自定义食材</span></div>
+    <div class="row">
+      <button class="btn" id="addImg">📷 导入图片</button>
+      <button class="btn ghost" id="addEmo">😀 输入 Emoji</button>
+    </div>
+    <div class="h"><span>我的食材（${S.custom.length}）</span></div>
+    ${S.custom.length?S.custom.map(c=>`
+      <div class="card" style="display:flex;gap:10px;align-items:center;">
+        ${c.image?`<img src="${c.image}" style="width:52px;height:52px;border-radius:8px;object-fit:cover;">`
+          :`<div style="width:52px;height:52px;border-radius:8px;background:rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;font-size:30px;">${c.emoji||"🖼"}</div>`}
+        <div style="flex:1;">
+          <div style="font-weight:700;">${c.name}</div>
+          <div style="font-size:12px;color:#888;">${c.desc||""}</div>
+        </div>
+        <button class="btn ghost" data-del="${c.id}" style="padding:6px 10px;font-size:12px;">删除</button>
+      </div>`).join(""):`<div style="text-align:center;color:#aaa;padding:20px;">还没有自定义食材</div>`}`;
+  el.querySelector("#addImg").onclick=async()=>{
+    const inp=document.createElement("input"); inp.type="file"; inp.accept="image/*";
+    inp.onchange=async()=>{
+      const f=inp.files[0]; if(!f) return;
+      const name=prompt("食材名字：","自制食材"); if(!name) return;
+      const desc=prompt("描述（可留空）：","")||"";
+      const image=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(f);});
+      S.custom.push({id:crypto.randomUUID(),name,desc,image});
+      await roche.storage.set("customIngredients",S.custom); render();
+    }; inp.click();
+  };
+  el.querySelector("#addEmo").onclick=async()=>{
+    const e=prompt("输入一个 emoji 作为食材："); if(!e) return;
+    const name=prompt("名字：",e)||e; const desc=prompt("描述（可留空）：","")||"";
+    S.custom.push({id:crypto.randomUUID(),name,desc,image:"",emoji:e});
+    await roche.storage.set("customIngredients",S.custom); render();
+  };
+  el.querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{
+    if(!await roche.ui.confirm({title:"删除",message:"确定删除这个自定义食材？"}))return;
+    S.custom=S.custom.filter(c=>c.id!==b.dataset.del);
+    await roche.storage.set("customIngredients",S.custom); render();
+  });
+}
+
+/* ---------- 设置 ---------- */
+function renderSet(el){
+  el.innerHTML=`
+    <div class="h"><span>🎨 主题${isLateNight?"（深夜自动切 night）":""}</span></div>
+    <div class="row">${Object.keys(THEMES).map(k=>`<div class="chip ${S.theme===k?"on":""}" data-th="${k}">${k}</div>`).join("")}</div>
+    <div class="h"><span>👥 Char 互动</span></div>
+    <div class="row"><button class="btn ghost" id="callChar">📞 随机呼叫一位 Char 来讨菜</button></div>
+    <div class="h"><span>📊 存储情况</span></div>
+    <div class="card" style="font-size:13px;line-height:1.8;">
+      菜谱：${S.recipes.length} 条<br>投喂：${S.feeds.length} 条<br>
+      自定义食材：${S.custom.length} 个（其中带图 ${S.custom.filter(c=>c.image).length} 个）
+    </div>
+    <div class="h"><span>☠️ 危险区</span></div>
+    <div class="row">
+      <button class="btn ghost" id="clrRec" style="color:#c33;border-color:#c33;">清空全部菜谱</button>
+      <button class="btn ghost" id="clrFeed" style="color:#c33;border-color:#c33;">清空投喂记录</button>
+      <button class="btn ghost" id="wipeAll" style="color:#c33;border-color:#c33;">清空全部厨房数据</button>
+    </div>`;
+  el.querySelectorAll("[data-th]").forEach(b=>b.onclick=async()=>{
+    S.theme=b.dataset.th; await roche.storage.set("theme",S.theme); render();
+  });
+  el.querySelector("#callChar").onclick=async()=>{
+    S.cravingBanner=null; await maybeCraving(true); S.tab="stove"; render();
+  };
+  el.querySelector("#clrRec").onclick=async()=>{
+    if(!await roche.ui.confirm({title:"确认",message:"清空全部菜谱？"}))return;
+    S.recipes=[]; await roche.storage.set("recipes",[]); render();
+  };
+  el.querySelector("#clrFeed").onclick=async()=>{
+    if(!await roche.ui.confirm({title:"确认",message:"清空全部投喂记录？"}))return;
+    S.feeds=[]; await roche.storage.set("feedRecords",[]); render();
+  };
+  el.querySelector("#wipeAll").onclick=async()=>{
+    if(!await roche.ui.confirm({title:"⚠️ 清空全部",message:"菜谱、投喂、自定义食材都会删除，不可恢复。继续？"}))return;
+    S.recipes=[];S.feeds=[];S.custom=[];
+    await roche.storage.set("recipes",[]);
+    await roche.storage.set("feedRecords",[]);
+    await roche.storage.set("customIngredients",[]);
+    render();
+  };
+}
+
+render();
+maybeCraving();
+
+}, async unmount(container){
+  document.querySelectorAll('style[data-plugin="char-kitchen"]').forEach(s=>s.remove());
+  document.querySelectorAll('.spice-fx-layer,.overlay').forEach(s=>s.remove());
+  container.replaceChildren();
+}}]});

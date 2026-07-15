@@ -1,7 +1,7 @@
 window.RochePlugin.register({
 id:"char-kitchen",
 name:"给 Char 炒菜的厨房",
-version:"4.7.1",
+version:"4.7.2",
 apps:[{
 id:"char-kitchen-home",
 name:"Char 的厨房",
@@ -715,13 +715,36 @@ async function handleBubbleClick(bubbleEl){
   render();
   generateInitialBeFedResponse(char, dish, choice);
 }
+
 /* ---------- 被投喂模式 ---------- */
 function renderBeFed(el){
+  // 注入气泡动画（如果之前没有的话）
+  if(!document.getElementById("bubble-style")){
+    const style = document.createElement("style");
+    style.id = "bubble-style";
+    style.innerHTML = `
+      @keyframes slowFloatUp {
+        0% { transform: translateY(100vh) scale(0.8) rotate(-10deg); opacity: 0; }
+        10% { opacity: 1; transform: translateY(80vh) scale(1) rotate(5deg); }
+        90% { opacity: 1; }
+        100% { transform: translateY(-20vh) scale(1.1) rotate(-5deg); opacity: 0; }
+      }
+      .feed-bubble:hover { transform: scale(1.2) !important; z-index: 100; }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // 如果正在等待确认是否吃
+  if(S.pendingFeed) {
+    renderPendingFeed(el);
+    return;
+  }
+
   el.innerHTML=`
-    <div style="text-align:center;color:#888;padding:40px 20px;line-height:1.6;">
+    <div style="text-align:center;color:#888;padding:40px 20px;line-height:1.6;position:relative;z-index:2;">
       这里是「被投喂」区。<br>Char 随时可能端着食物来找你。<br>点击飘浮的泡泡看看是谁带了什么好吃的！
     </div>
-    <div id="bubbleContainer" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;"></div>
+    <div id="bubbleContainer" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:10;"></div>
   `;
   const container = el.querySelector("#bubbleContainer");
   const timer = setInterval(()=>{
@@ -730,28 +753,38 @@ function renderBeFed(el){
     const b = document.createElement("div");
     b.className = "feed-bubble";
     b.textContent = BUBBLE_EMOJIS[Math.floor(Math.random()*BUBBLE_EMOJIS.length)];
-    b.style.left = (10 + Math.random()*70) + "%";
-    b.style.pointerEvents = "auto";
-    b.style.animationDuration = (5 + Math.random()*4) + "s";
+    // 优化气泡：变大、变慢、增加 padding 扩大点击热区
+    b.style.cssText = `
+      position: absolute;
+      left: ${10 + Math.random()*70}%;
+      font-size: 48px; /* 字体变大 */
+      padding: 20px; /* 增加点击热区 */
+      cursor: pointer;
+      pointer-events: auto;
+      transition: transform 0.2s;
+      animation: slowFloatUp ${10 + Math.random()*6}s linear forwards; /* 动画变慢，10-16秒 */
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+      user-select: none;
+    `;
     b.onclick = () => handleBubbleClick(b);
     container.appendChild(b);
-    setTimeout(()=>b.remove(), 9000);
-  }, 1800);
+    setTimeout(()=>b.remove(), 17000);
+  }, 2000);
   el._bubbleTimer = timer;
 }
 
 async function handleBubbleClick(bubbleEl){
-  const bubbleEmoji = bubbleEl.textContent;
+  const bubbleEmoji = bubbleEl.textContent.trim();
   bubbleEl.remove();
   let chars=[]; try{ chars=await roche.character.list(); }catch{}
   if(!chars.length){ roche.ui.toast("没有 Char 可以投喂你"); return; }
   const char = chars[Math.floor(Math.random()*chars.length)];
   
-  showLoading(`${char.handle||char.name} 正在向你走来…`);
+  showLoading(`正在看看 ${char.handle||char.name} 带了什么…`);
 
-  // 1. 决定菜品
   let dish;
-  if(S.recipes.length > 0 && Math.random() > 0.4){
+  // 50% 概率从已有菜谱选，50% 概率 AI 新生成
+  if(S.recipes.length > 0 && Math.random() > 0.5){
     dish = S.recipes[Math.floor(Math.random()*S.recipes.length)];
   } else {
     dish = { name: "特制料理", desc: "不知道加了什么，但看起来是为你准备的。", emojis: [bubbleEmoji, "✨"], effect: "充满心意", taste:"未知", texture:"未知", vibe:"惊喜" };
@@ -768,22 +801,53 @@ async function handleBubbleClick(bubbleEl){
     }catch(e){ console.error("生成菜品失败", e); }
   }
 
-  // 2. 生成角色的开场白
-  let firstMsg = `（端着【${dish.name}】走到你面前，眼神有些期待）尝尝看？`;
-  try {
-    const res = await roche.ai.chat({messages:[
-      {role:"system",content:`你扮演「${char.name||char.handle}」。人设：${char.persona||char.bio||""}\n你端着你亲手准备的料理「${dish.name}」(${dish.desc}) 来找 user。请带上动作描写，说第一句话，邀请 user 品尝。字数50字以内，不要输出引号。`}
-    ], temperature:0.9});
-    if(res.text) firstMsg = res.text.trim();
-  } catch(e) { console.error("生成开场白失败", e); }
-
   hideLoading();
-
-  // 3. 进入聊天
-  S.chatWith = { char, dish, isPureChat:true };
-  S.chatLog = [{role:"assistant", text:firstMsg}];
-  S.tab = "feed";
+  // 设置待确认状态并重新渲染
+  S.pendingFeed = { char, dish };
   render();
+}
+
+function renderPendingFeed(el) {
+  const { char, dish } = S.pendingFeed;
+  el.innerHTML = `
+    <div style="padding:20px; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; text-align:center; animation: fadeIn 0.4s;">
+      ${char.avatar ? `<img src="${char.avatar}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.2);margin-bottom:16px;">` : `<div style="width:80px;height:80px;border-radius:50%;background:var(--acc);margin-bottom:16px;"></div>`}
+      <h2 style="margin:0 0 8px; font-size:20px; color:var(--ink);">${char.handle||char.name} 带着食物来了！</h2>
+      <div style="background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; width:100%; max-width:300px; margin-bottom:24px; box-shadow:0 4px 16px rgba(0,0,0,0.05);">
+        <div style="font-size:36px; margin-bottom:12px;">${renderEmoList(dish.emojis, 36)}</div>
+        <div style="font-size:18px; font-weight:bold; color:var(--ink); margin-bottom:8px;">【${dish.name}】</div>
+        <div style="font-size:14px; color:var(--ink); opacity:0.8; margin-bottom:8px;">${dish.desc}</div>
+        ${dish.effect ? `<div style="font-size:12px; color:var(--acc); background:var(--bg); padding:4px 8px; border-radius:8px; display:inline-block;">✨ ${dish.effect}</div>` : ''}
+      </div>
+      <div style="display:flex; gap:12px; width:100%; max-width:300px;">
+        <button class="btn ghost" id="btnRefuseFeed" style="flex:1;">婉拒</button>
+        <button class="btn" id="btnAcceptFeed" style="flex:1;">接受投喂</button>
+      </div>
+    </div>
+  `;
+
+  el.querySelector("#btnRefuseFeed").onclick = () => {
+    S.pendingFeed = null;
+    roche.ui.toast(`你婉拒了 ${char.handle||char.name} 的好意`);
+    render();
+  };
+
+  el.querySelector("#btnAcceptFeed").onclick = async () => {
+    showLoading(`${char.handle||char.name} 正在向你走来…`);
+    let firstMsg = `（端着【${dish.name}】走到你面前，眼神有些期待）尝尝看？`;
+    try {
+      const res = await roche.ai.chat({messages:[
+        {role:"system",content:`你扮演「${char.name||char.handle}」。人设：${char.persona||char.bio||""}\n你端着你亲手准备的料理「${dish.name}」(${dish.desc}) 来找 user。请带上动作描写，说第一句话，邀请 user 品尝。字数50字以内，不要输出引号。`}
+      ], temperature:0.9});
+      if(res.text) firstMsg = res.text.trim();
+    } catch(e) { console.error("生成开场白失败", e); }
+    hideLoading();
+
+    S.chatWith = { char, dish, isPureChat:true };
+    S.chatLog = [{role:"assistant", text:firstMsg}];
+    S.pendingFeed = null; // 清除待确认状态
+    render();
+  };
 }
 
 function renderPureChatPage(el){
@@ -801,7 +865,7 @@ function renderPureChatPage(el){
       ${S.chatLog.map(m=>`<div class="chat-msg ${m.role==='user'?'me':'other'}">${m.text}</div>`).join("")}
       ${S.isTyping ? `<div class="chat-msg other"><div class="typing-dots"><span></span><span></span><span></span></div></div>` : ''}
     </div>
-    <div style="display:flex; gap:6px; margin:8px 0 4px; padding:0 4px; overflow-x:auto; white-space:nowrap;">
+    <div style="display:flex; gap:6px; margin:8px 0 4px; padding:0 4px; overflow-x:auto; white-space:nowrap; flex-shrink:0;">
       <button class="chip" id="btnEat">😋 吃掉</button>
       <button class="chip" id="btnRej">🙅 婉拒</button>
       <button class="chip" id="btnTaste">👅 尝一口</button>

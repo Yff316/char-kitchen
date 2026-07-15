@@ -1,532 +1,454 @@
 window.RochePlugin.register({
-  id: "char-kitchen",
-  name: "给 Char 炒菜的厨房",
-  version: "5.0.0",
-  apps: [{
-    id: "char-kitchen-home",
-    name: "Char 的厨房",
-    icon: "restaurant",
-    async mount(container, roche) {
+id:"char-kitchen",
+name:"给 Char 炒菜的厨房",
+version:"5.0.0",
+apps:[{
+id:"char-kitchen-home",
+name:"Char 的厨房",
+icon:"restaurant",
+async mount(container, roche){
 
-      /* ============ 1. 数据字典 ============ */
-      const FRIDGE = {
-        "肉类": ["🥩", "🍗", "🍖", "🥓", "🍤", "🦑", "🦐", "🦀", "🐟", "🦞", "🥚"],
-        "蔬菜": ["🥬", "🥒", "🍆", "🥦", "🥕", "🥔", "🌽", "🍠", "🍄", "🌶️", "🧄", "🧅", "🫑", "🥗"],
-        "水果": ["🍎", "🍏", "🍊", "🍋", "🍑", "🍒", "🍓", "🍈", "🍉", "🍇", "🥭", "🥝", "🍌", "🍐", "🍍", "🥥"],
-        "主食": ["🍚", "🍞", "🍜", "🍝", "🥖", "🥐", "🥯", "🥟", "🍙", "🍘", "🌮", "🌯", "🥙", "🥞"],
-        "蛋点": ["🍰", "🎂", "🧁", "🍮", "🍩", "🍪", "🍫", "🍬", "🍭", "🍦", "🍨", "🍧"],
-        "饮品": ["🥛", "🧃", "☕", "🍵", "🧉", "🍹", "🍸", "🍷", "🍺", "🥤"],
-        "怪东西": ["🦴", "🍿", "🧀", "💊", "🧫", "🫘"],
-      };
+/* ============ 数据 ============ */
+const FRIDGE = {
+  "肉类":["🥩","🍗","🍖","🥓","🍤","🦑","🦐","🦀","🐟","🦞","🥚"],
+  "蔬菜":["🥬","🥒","🍆","🥦","🥕","🥔","🌽","🍠","🍄","🌶️","🧄","🧅","🫑","🥗"],
+  "水果":["🍎","🍏","🍊","🍋","🍑","🍒","🍓","🍈","🍉","🍇","🥭","🥝","🍌","🍐","🍍","🥥"],
+  "主食":["🍚","🍞","🍜","🍝","🥖","🥐","🥯","🥟","🍙","🍘","🌮","🌯","🥙","🥞"],
+  "蛋点":["🍰","🎂","🧁","🍮","🍩","🍪","🍫","🍬","🍭","🍦","🍨","🍧"],
+  "饮品":["🥛","🧃","☕","🍵","🧉","🍹","🍸","🍷","🍺","🥤"],
+  "怪东西":["🦴","🍿","🧀","💊","🧫","🫘"],
+};
+const SPICE_FX = {
+  "🧂":{name:"盐",p:"·",c:"#fff",anim:"burst"}, "🌶️":{name:"辣椒",p:"~",c:"#e63b1e",anim:"burst-shake"},
+  "🍯":{name:"蜂蜜",p:"◉",c:"#e8a13b",anim:"drip"}, "🧈":{name:"黄油",p:"◐",c:"#ffe08a",anim:"halo"},
+  "🫒":{name:"橄榄油",p:"◎",c:"#7ab648",anim:"swirl"}, "🥫":{name:"番茄酱",p:"●",c:"#d33",anim:"splash"},
+  "🧄":{name:"蒜",p:"■",c:"#f5f0dc",anim:"burst"}, "🍶":{name:"料酒",p:"˜",c:"#b8d8ff",anim:"rise"},
+  "🥃":{name:"威士忌",p:"🔥",c:"#d99a3a",anim:"flambe"}, "💊":{name:"神秘药",p:"✦",c:"#b06bff",anim:"twinkle"},
+  "🧊":{name:"冰",p:"❄",c:"#a8d8ff",anim:"drop"}, "🌿":{name:"香草",p:"❦",c:"#5fb04a",anim:"drop"},
+  "🫙":{name:"罐装",p:"·",c:"#c8bfae",anim:"burst"}, "⚗️":{name:"试剂",p:"○",c:"#6bd2c8",anim:"bubble"},
+};
+const SPICES_COMMON  = ["🧂","🌶️","🍯","🧈","🫒","🥫","🧄"];
+const SPICES_CABINET = ["🍶","🥃","💊","🧊","🌿","🫙","⚗️"];
+const DARK_EMOJIS = ["💊","🦴","🍿","🧀","🧫","🫘"];
+const BUBBLE_EMOJIS = ["🍎","🍱","🍥","🍰","🍔","🥞","🍕","🥐","🍣","🍢","🍡","🍪","🍤","🥠","🍘","🍙","🍮"];
+const EMOJI_META = {
+  "🥩":{t:"咸鲜",x:"扎实",v:"豪华"},"🍗":{t:"咸香",x:"多汁",v:"满足"},
+  "🥚":{t:"清淡",x:"嫩",v:"温柔"},"🥕":{t:"清甜",x:"脆",v:"营养"},
+  "🌶️":{t:"辣",x:"脆",v:"火热"},"🍅":{t:"酸",x:"多汁",v:"鲜"},
+  "🍑":{t:"甜",x:"多汁",v:"温柔"},"🍫":{t:"甜苦",x:"丝滑",v:"浪漫"},
+  "🍯":{t:"甜",x:"粘稠",v:"温暖"},"🧂":{t:"咸",x:"颗粒",v:"基础"},
+  "💊":{t:"苦",x:"硬",v:"神秘"},"🧄":{t:"辛香",x:"脆",v:"浓郁"},
+};
+const POTS = [{id:"wok",name:"炒锅",tag:"炒"},{id:"flat",name:"平底锅",tag:"煎"},{id:"pressure",name:"高压锅",tag:"汤"}];
+const TOOLS = [{id:"spatula",name:"锅铲"},{id:"ladle",name:"汤勺"}];
+const THEMES = {
+  warm:{bg:"#fff7ec",ink:"#3a2a1a",acc:"#e8863b",card:"#fff",loader:"🍙"},
+  night:{bg:"#161a2e",ink:"#e8ecff",acc:"#ffb86b",card:"#232842",loader:"🍘"},
+  mint:{bg:"#eefaf3",ink:"#233a30",acc:"#3fb27f",card:"#fff",loader:"🍡"},
+  pink:{bg:"#fff2f6",ink:"#40202c",acc:"#e668a0",card:"#fff",loader:"🍣"},
+};
 
-      const SPICE_FX = {
-        "🧂": { name: "盐", p: "·", c: "#fff", anim: "burst" },
-        "🌶️": { name: "辣椒", p: "~", c: "#e63b1e", anim: "burst-shake" },
-        "🍯": { name: "蜂蜜", p: "◉", c: "#e8a13b", anim: "drip" },
-        "🧈": { name: "黄油", p: "◐", c: "#ffe08a", anim: "halo" },
-        "🫒": { name: "橄榄油", p: "◎", c: "#7ab648", anim: "swirl" },
-        "🥫": { name: "番茄酱", p: "●", c: "#d33", anim: "splash" },
-        "🧄": { name: "蒜", p: "■", c: "#f5f0dc", anim: "burst" },
-        "🍶": { name: "料酒", p: "˜", c: "#b8d8ff", anim: "rise" },
-        "🥃": { name: "威士忌", p: "🔥", c: "#d99a3a", anim: "flambe" },
-        "💊": { name: "神秘药", p: "✦", c: "#b06bff", anim: "twinkle" },
-        "🧊": { name: "冰", p: "❄", c: "#a8d8ff", anim: "drop" },
-        "🌿": { name: "香草", p: "❦", c: "#5fb04a", anim: "drop" },
-        "🫙": { name: "罐装", p: "·", c: "#c8bfae", anim: "burst" },
-        "⚗️": { name: "试剂", p: "○", c: "#6bd2c8", anim: "bubble" },
-      };
+/* ============ 成就系统 ============ */
+const HIDDEN_IDS = new Set(["cabinet_open","all_theme","reset_ach","wipe_all","konami","single_ingredient","only_spice","big_dish","dark_at_midnight","reactions_all","char_all_fed","late_night_open","seven_days"]);
+const ACHIEVEMENTS = {
+  first_cook:{icon:"👨‍🍳",name:"第一次下厨",desc:"完成第一道菜"}, ten_dishes:{icon:"📚",name:"厨神修行",desc:"菜谱累计 10 道菜"},
+  thirty_dishes:{icon:"📗",name:"食谱学徒",desc:"菜谱累计 30 道菜"}, fifty_dishes:{icon:"📖",name:"食谱百科",desc:"菜谱累计 50 道菜"},
+  hundred_dishes:{icon:"🏆",name:"米其林三星",desc:"菜谱累计 100 道菜"}, pot_all:{icon:"🍳",name:"锅具全通",desc:"三种锅都用过"},
+  spice_common_all:{icon:"🧂",name:"厨台霸主",desc:"台面 7 种调料都用过"}, spice_all:{icon:"🧪",name:"调料收藏家",desc:"用过全部 14 种调料"},
+  no_spice:{icon:"🥗",name:"极简主义",desc:"不放任何调料炒一道菜"}, max_fire:{icon:"🔥",name:"猛火大师",desc:"用猛火出锅一次"},
+  low_fire:{icon:"🕯",name:"文火慢炖",desc:"用小火出锅一次"}, toss_master:{icon:"🥢",name:"颠勺达人",desc:"累计颠勺 20 次"},
+  toss_hundred:{icon:"💫",name:"颠勺宗师",desc:"累计颠勺 100 次"}, wok_ten:{icon:"🥘",name:"炒锅专家",desc:"用炒锅出锅 10 道菜"},
+  flat_ten:{icon:"🍳",name:"煎锅专家",desc:"用平底锅出锅 10 道菜"}, pressure_ten:{icon:"🍲",name:"炖汤专家",desc:"用高压锅出锅 10 道菜"},
+  ingredient_master:{icon:"🌈",name:"食材大师",desc:"累计用过 30 种不同食材"}, spice_junkie:{icon:"⚗️",name:"调料狂魔",desc:"单次使用 5 种以上调料"},
+  dark_master:{icon:"☠️",name:"绝命毒师",desc:"第一次制作黑暗料理"}, dark_five:{icon:"🧟",name:"深渊厨师",desc:"累计做出 5 道黑暗料理"},
+  dark_ten:{icon:"👹",name:"克苏鲁的呼唤",desc:"累计做出 10 道黑暗料理"}, dark_thirty:{icon:"🕷",name:"疯狂化学家",desc:"累计做出 30 道黑暗料理"},
+  pill_chef:{icon:"💊",name:"化学家的浪漫",desc:"用神秘药炒一道菜"}, bone_soup:{icon:"🦴",name:"骨汤秘方",desc:"用骨头炒一道菜"},
+  cheese_pop:{icon:"🧀",name:"奶酪爆米花",desc:"同锅使用奶酪和爆米花"}, petri_dish:{icon:"🧫",name:"培养皿主厨",desc:"使用培养皿做一道菜"},
+  seafood_fruit:{icon:"🍤",name:"禁忌搭配",desc:"海鲜和水果同锅"}, all_dark_emojis:{icon:"👺",name:"深渊图鉴",desc:"6 种怪东西全部用过"},
+  midnight:{icon:"🌙",name:"深夜食堂",desc:"在深夜炒出一道菜"}, midnight_ten:{icon:"🦉",name:"夜猫子厨师",desc:"深夜累计做出 10 道菜"},
+  midnight_thirty:{icon:"🌌",name:"永夜料理人",desc:"深夜累计做出 30 道菜"}, early_bird:{icon:"🌅",name:"晨光料理",desc:"清晨 5-8 点做一道菜"},
+  lunch_chef:{icon:"🌞",name:"午间小炒",desc:"中午 11-13 点做一道菜"}, dinner_chef:{icon:"🌇",name:"晚餐时刻",desc:"傍晚 17-19 点做一道菜"},
+  feed_first:{icon:"🥄",name:"第一次投喂",desc:"投喂 Char 一次"}, feed_ten:{icon:"💝",name:"喂养大师",desc:"累计投喂 10 次"},
+  feed_thirty:{icon:"🍽",name:"专属厨师",desc:"累计投喂 30 次"}, feed_fifty:{icon:"👑",name:"御膳房主厨",desc:"累计投喂 50 次"},
+  feed_hundred:{icon:"⭐",name:"投喂之王",desc:"累计投喂 100 次"}, feed_same:{icon:"🍱",name:"你最懂它",desc:"给同一个 Char 投喂 5 次"},
+  feed_same_ten:{icon:"💞",name:"独家宠爱",desc:"给同一个 Char 投喂 10 次"}, craving_ans:{icon:"📞",name:"应召厨师",desc:"响应 Char 主动讨菜"},
+  craving_five:{icon:"📢",name:"随叫随到",desc:"响应讨菜 5 次"}, craving_ten:{icon:"📣",name:"值班御厨",desc:"响应讨菜 10 次"},
+  gift_first:{icon:"🎁",name:"心意送达",desc:"第一次送菜给 Char"}, gift_ten:{icon:"💐",name:"礼物大师",desc:"累计送菜 10 次"},
+  refused:{icon:"🙅",name:"美食受害者",desc:"被 Char 拒绝一次"}, loved:{icon:"💖",name:"珍藏级",desc:"Char 说要珍藏起来"},
+  spat_out:{icon:"🤮",name:"精神污染",desc:"Char 被你的菜吐出来"}, smashed:{icon:"💥",name:"打翻现场",desc:"Char 把菜打翻了"},
+  one_bite:{icon:"👅",name:"浅尝辄止",desc:"Char 只尝了一口"}, reactions_all:{icon:"🎭",name:"情绪调色盘",desc:"收集 5 种不同反应(隐藏)"},
+  memory_saved:{icon:"💭",name:"记忆保管员",desc:"第一次把投喂记忆写入 Char"}, memory_ten:{icon:"🧠",name:"记忆缝纫师",desc:"写入 10 段投喂记忆"},
+  memory_thirty:{icon:"📿",name:"往事编年史",desc:"写入 30 段投喂记忆"}, char_all_fed:{icon:"🌍",name:"雨露均沾",desc:"投喂过 5 位不同 Char(隐藏)"},
+  custom_first:{icon:"🖼",name:"食材创造者",desc:"添加第一个自定义食材"}, custom_ten:{icon:"🧑‍🎨",name:"食材艺术家",desc:"自定义食材达到 10 个"},
+  custom_thirty:{icon:"🎨",name:"食材宇宙",desc:"自定义食材达到 30 个"}, custom_in_dish:{icon:"✨",name:"独一无二",desc:"用自定义食材做出一道菜"},
+  cabinet_open:{icon:"🗝",name:"打开柜子的人",desc:"打开一次稀有调料柜(隐藏)"}, all_theme:{icon:"🎨",name:"色彩收藏家",desc:"切换过全部 4 个主题(隐藏)"},
+  reset_ach:{icon:"🔄",name:"从头开始",desc:"重置过一次成就(隐藏)"}, wipe_all:{icon:"🗑",name:"厨房焚毁",desc:"清空过全部厨房数据(隐藏)"},
+  single_ingredient:{icon:"☝",name:"孤勇者",desc:"只用一种食材出锅(隐藏)"}, only_spice:{icon:"🧂",name:"调料汤",desc:"只放调料没有食材出锅(隐藏)"},
+  big_dish:{icon:"🍜",name:"满汉全席",desc:"一次放入 10 种以上食材(隐藏)"}, dark_at_midnight:{icon:"🕯",name:"午夜黑弥撒",desc:"深夜炒出一道黑暗料理(隐藏)"},
+  konami:{icon:"🕹",name:"???",desc:"???"}, late_night_open:{icon:"🦇",name:"夜半来客",desc:"深夜时段打开厨房(隐藏)"},
+  flambe_master:{icon:"🔥",name:"焰火表演",desc:"使用威士忌 flambé"}, mystic_trio:{icon:"🔮",name:"三位一体",desc:"同时使用神秘药+试剂+骨头"},
+  seven_days:{icon:"📅",name:"常客",desc:"连续 7 天使用厨房(隐藏)"},
+};
 
-      const SPICES_COMMON = ["🧂", "🌶️", "🍯", "🧈", "🫒", "🥫", "🧄"];
-      const SPICES_CABINET = ["🍶", "🥃", "💊", "🧊", "🌿", "🫙", "⚗️"];
-      const DARK_EMOJIS = ["💊", "🦴", "🍿", "🧀", "🧫", "🫘"];
-      const BUBBLE_EMOJIS = ["🍎", "🍱", "🍥", "🍰", "🍔", "🥞", "🍕", "🥐", "🍣", "🍢", "🍡", "🍪", "🍤", "🥠", "🍘", "🍙", "🍮"];
-      
-      const EMOJI_META = {
-        "🥩": { t: "咸鲜", x: "扎实", v: "豪华" }, "🍗": { t: "咸香", x: "多汁", v: "满足" },
-        "🥚": { t: "清淡", x: "嫩", v: "温柔" }, "🥕": { t: "清甜", x: "脆", v: "营养" },
-        "🌶️": { t: "辣", x: "脆", v: "火热" }, "🍅": { t: "酸", x: "多汁", v: "鲜" },
-        "🍑": { t: "甜", x: "多汁", v: "温柔" }, "🍫": { t: "甜苦", x: "丝滑", v: "浪漫" },
-        "🍯": { t: "甜", x: "粘稠", v: "温暖" }, "🧂": { t: "咸", x: "颗粒", v: "基础" },
-        "💊": { t: "苦", x: "硬", v: "神秘" }, "🧄": { t: "辛香", x: "脆", v: "浓郁" },
-      };
+/* ============ 状态 ============ */
+const hour = new Date().getHours();
+const isRealLateNight = (hour>=22 || hour<4);
+const S = {
+  tab:"stove", pot:"wok", tool:"spatula", fire:2,
+  picked:[], spices:[],
+  recipes:(await roche.storage.get("recipes"))||[],
+  feeds:(await roche.storage.get("feedRecords"))||[],
+  custom:(await roche.storage.get("customIngredients"))||[],
+  cabinetOpen:false,
+  catOpen:{"肉类":true,"蔬菜":true,"水果":false,"主食":false,"蛋点":false,"饮品":false,"怪东西":false,"自定义":true},
+  forceMidnight:(await roche.storage.get("forceMidnight"))||false,
+  theme:(await roche.storage.get("theme")) || ((isRealLateNight||(await roche.storage.get("forceMidnight")))?"night":"warm"),
+  paddingTop:(await roche.storage.get("paddingTop")) || 0,
+  chatWith:null, chatLog:[], cravingBanner:null, pendingDish:null,
+  bookTab:"all", feedTab:"feedChar", chatStatusOpen:true, isTyping:false,
+  
+  achievements:(await roche.storage.get("achievements"))||{}, spiceUsed:new Set((await roche.storage.get("spiceUsed"))||[]),
+  potUsed:new Set((await roche.storage.get("potUsed"))||[]), ingredientsUsed:new Set((await roche.storage.get("ingredientsUsed"))||[]),
+  darkEmojisUsed:new Set((await roche.storage.get("darkEmojisUsed"))||[]), darkCount:(await roche.storage.get("darkCount"))||0,
+  midnightCount:(await roche.storage.get("midnightCount"))||0, cravingAnsCount:(await roche.storage.get("cravingAnsCount"))||0,
+  memoryCount:(await roche.storage.get("memoryCount"))||0, tossCount:(await roche.storage.get("tossCount"))||0,
+  giftCount:(await roche.storage.get("giftCount"))||0, feedPerChar:(await roche.storage.get("feedPerChar"))||{},
+  potDishCount:(await roche.storage.get("potDishCount"))||{wok:0,flat:0,pressure:0}, reactionSet:new Set((await roche.storage.get("reactionSet"))||[]),
+  themesUsed:new Set((await roche.storage.get("themesUsed"))||[]), lastCookDate:(await roche.storage.get("lastCookDate"))||"",
+  consecutiveCookDays:(await roche.storage.get("consecutiveCookDays"))||0, achOpen:true, konamiSeq:[],
+};
+const isLateNight = isRealLateNight || S.forceMidnight;
 
-      const POTS = [
-        { id: "wok", name: "炒锅", tag: "炒" },
-        { id: "flat", name: "平底锅", tag: "煎" },
-        { id: "pressure", name: "高压锅", tag: "汤" },
-      ];
-      const TOOLS = [{ id: "spatula", name: "锅铲" }, { id: "ladle", name: "汤勺" }];
-      const THEMES = {
-        warm: { bg: "#fff7ec", ink: "#3a2a1a", acc: "#e8863b", card: "#fff", loader: "🍙" },
-        night: { bg: "#161a2e", ink: "#e8ecff", acc: "#ffb86b", card: "#232842", loader: "🍘" },
-        mint: { bg: "#eefaf3", ink: "#233a30", acc: "#3fb27f", card: "#fff", loader: "🍡" },
-        pink: { bg: "#fff2f6", ink: "#40202c", acc: "#e668a0", card: "#fff", loader: "🍣" },
-      };
+function renderEmo(e, size=26){
+  if(e.startsWith("::")){
+    const c = S.custom.find(x => x.id === e.slice(2));
+    if(c) return c.image ? `<img src="${c.image}" style="width:${size}px;height:${size}px;object-fit:cover;vertical-align:text-bottom;display:inline-block;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.2);">` : (c.emoji || "🖼");
+    return "🖼";
+  }
+  return e;
+}
+function renderEmoList(emojis, size=26){
+  if(!emojis || emojis.length===0) return "";
+  if(emojis.length <= 6) return emojis.map(e => renderEmo(e, size)).join("");
+  const head = emojis.slice(0, 3).map(e => renderEmo(e, size)).join("");
+  const tail = emojis.slice(-3).map(e => renderEmo(e, size)).join("");
+  return `${head}<span style="margin:0 4px;color:#888;font-weight:bold;font-size:${size*0.7}px;vertical-align:middle;">···</span>${tail}`;
+}
 
-      /* ============ 2. 成就系统 ============ */
-      const HIDDEN_IDS = new Set(["cabinet_open", "all_theme", "reset_ach", "wipe_all", "konami", "single_ingredient", "only_spice", "big_dish", "dark_at_midnight", "reactions_all", "char_all_fed", "late_night_open", "seven_days"]);
-      const ACHIEVEMENTS = {
-        first_cook: { icon: "👨‍🍳", name: "第一次下厨", desc: "完成第一道菜" },
-        ten_dishes: { icon: "📚", name: "厨神修行", desc: "菜谱累计 10 道菜" },
-        thirty_dishes: { icon: "📗", name: "食谱学徒", desc: "菜谱累计 30 道菜" },
-        fifty_dishes: { icon: "📖", name: "食谱百科", desc: "菜谱累计 50 道菜" },
-        hundred_dishes: { icon: "🏆", name: "米其林三星", desc: "菜谱累计 100 道菜" },
-        pot_all: { icon: "🍳", name: "锅具全通", desc: "三种锅都用过" },
-        spice_common_all: { icon: "🧂", name: "厨台霸主", desc: "台面 7 种调料都用过" },
-        spice_all: { icon: "🧪", name: "调料收藏家", desc: "用过全部 14 种调料" },
-        no_spice: { icon: "🥗", name: "极简主义", desc: "不放任何调料炒一道菜" },
-        max_fire: { icon: "🔥", name: "猛火大师", desc: "用猛火出锅一次" },
-        low_fire: { icon: "🕯", name: "文火慢炖", desc: "用小火出锅一次" },
-        toss_master: { icon: "🥢", name: "颠勺达人", desc: "累计颠勺 20 次" },
-        toss_hundred: { icon: "💫", name: "颠勺宗师", desc: "累计颠勺 100 次" },
-        wok_ten: { icon: "🥘", name: "炒锅专家", desc: "用炒锅出锅 10 道菜" },
-        flat_ten: { icon: "🍳", name: "煎锅专家", desc: "用平底锅出锅 10 道菜" },
-        pressure_ten: { icon: "🍲", name: "炖汤专家", desc: "用高压锅出锅 10 道菜" },
-        ingredient_master: { icon: "🌈", name: "食材大师", desc: "累计用过 30 种不同食材" },
-        spice_junkie: { icon: "⚗️", name: "调料狂魔", desc: "单次使用 5 种以上调料" },
-        dark_master: { icon: "☠️", name: "绝命毒师", desc: "第一次制作黑暗料理" },
-        dark_five: { icon: "🧟", name: "深渊厨师", desc: "累计做出 5 道黑暗料理" },
-        dark_ten: { icon: "👹", name: "克苏鲁的呼唤", desc: "累计做出 10 道黑暗料理" },
-        dark_thirty: { icon: "🕷", name: "疯狂化学家", desc: "累计做出 30 道黑暗料理" },
-        pill_chef: { icon: "💊", name: "化学家的浪漫", desc: "用神秘药炒一道菜" },
-        bone_soup: { icon: "🦴", name: "骨汤秘方", desc: "用骨头炒一道菜" },
-        cheese_pop: { icon: "🧀", name: "奶酪爆米花", desc: "同锅使用奶酪和爆米花" },
-        petri_dish: { icon: "🧫", name: "培养皿主厨", desc: "使用培养皿做一道菜" },
-        seafood_fruit: { icon: "🍤", name: "禁忌搭配", desc: "海鲜和水果同锅" },
-        all_dark_emojis: { icon: "👺", name: "深渊图鉴", desc: "6 种怪东西全部用过" },
-        midnight: { icon: "🌙", name: "深夜食堂", desc: "在深夜炒出一道菜" },
-        midnight_ten: { icon: "🦉", name: "夜猫子厨师", desc: "深夜累计做出 10 道菜" },
-        midnight_thirty: { icon: "🌌", name: "永夜料理人", desc: "深夜累计做出 30 道菜" },
-        early_bird: { icon: "🌅", name: "晨光料理", desc: "清晨 5-8 点做一道菜" },
-        lunch_chef: { icon: "🌞", name: "午间小炒", desc: "中午 11-13 点做一道菜" },
-        dinner_chef: { icon: "🌇", name: "晚餐时刻", desc: "傍晚 17-19 点做一道菜" },
-        feed_first: { icon: "🥄", name: "第一次投喂", desc: "投喂 Char 一次" },
-        feed_ten: { icon: "💝", name: "喂养大师", desc: "累计投喂 10 次" },
-        feed_thirty: { icon: "🍽", name: "专属厨师", desc: "累计投喂 30 次" },
-        feed_fifty: { icon: "👑", name: "御膳房主厨", desc: "累计投喂 50 次" },
-        feed_hundred: { icon: "⭐", name: "投喂之王", desc: "累计投喂 100 次" },
-        feed_same: { icon: "🍱", name: "你最懂它", desc: "给同一个 Char 投喂 5 次" },
-        feed_same_ten: { icon: "💞", name: "独家宠爱", desc: "给同一个 Char 投喂 10 次" },
-        craving_ans: { icon: "📞", name: "应召厨师", desc: "响应 Char 主动讨菜" },
-        craving_five: { icon: "📢", name: "随叫随到", desc: "响应讨菜 5 次" },
-        craving_ten: { icon: "📣", name: "值班御厨", desc: "响应讨菜 10 次" },
-        gift_first: { icon: "🎁", name: "心意送达", desc: "第一次送菜给 Char" },
-        gift_ten: { icon: "💐", name: "礼物大师", desc: "累计送菜 10 次" },
-        refused: { icon: "🙅", name: "美食受害者", desc: "被 Char 拒绝一次" },
-        loved: { icon: "💖", name: "珍藏级", desc: "Char 说要珍藏起来" },
-        spat_out: { icon: "🤮", name: "精神污染", desc: "Char 被你的菜吐出来" },
-        smashed: { icon: "💥", name: "打翻现场", desc: "Char 把菜打翻了" },
-        one_bite: { icon: "👅", name: "浅尝辄止", desc: "Char 只尝了一口" },
-        reactions_all: { icon: "🎭", name: "情绪调色盘", desc: "收集 5 种不同反应(隐藏)" },
-        memory_saved: { icon: "💭", name: "记忆保管员", desc: "第一次把投喂记忆写入 Char" },
-        memory_ten: { icon: "🧠", name: "记忆缝纫师", desc: "写入 10 段投喂记忆" },
-        memory_thirty: { icon: "📿", name: "往事编年史", desc: "写入 30 段投喂记忆" },
-        char_all_fed: { icon: "🌍", name: "雨露均沾", desc: "投喂过 5 位不同 Char(隐藏)" },
-        custom_first: { icon: "🖼", name: "食材创造者", desc: "添加第一个自定义食材" },
-        custom_ten: { icon: "🧑‍🎨", name: "食材艺术家", desc: "自定义食材达到 10 个" },
-        custom_thirty: { icon: "🎨", name: "食材宇宙", desc: "自定义食材达到 30 个" },
-        custom_in_dish: { icon: "✨", name: "独一无二", desc: "用自定义食材做出一道菜" },
-        cabinet_open: { icon: "🗝", name: "打开柜子的人", desc: "打开一次稀有调料柜(隐藏)" },
-        all_theme: { icon: "🎨", name: "色彩收藏家", desc: "切换过全部 4 个主题(隐藏)" },
-        reset_ach: { icon: "🔄", name: "从头开始", desc: "重置过一次成就(隐藏)" },
-        wipe_all: { icon: "🗑", name: "厨房焚毁", desc: "清空过全部厨房数据(隐藏)" },
-        single_ingredient: { icon: "☝", name: "孤勇者", desc: "只用一种食材出锅(隐藏)" },
-        only_spice: { icon: "🧂", name: "调料汤", desc: "只放调料没有食材出锅(隐藏)" },
-        big_dish: { icon: "🍜", name: "满汉全席", desc: "一次放入 10 种以上食材(隐藏)" },
-        dark_at_midnight: { icon: "🕯", name: "午夜黑弥撒", desc: "深夜炒出一道黑暗料理(隐藏)" },
-        konami: { icon: "🕹", name: "???", desc: "???" },
-        late_night_open: { icon: "🦇", name: "夜半来客", desc: "深夜时段打开厨房(隐藏)" },
-        flambe_master: { icon: "🔥", name: "焰火表演", desc: "使用威士忌 flambé" },
-        mystic_trio: { icon: "🔮", name: "三位一体", desc: "同时使用神秘药+试剂+骨头" },
-        seven_days: { icon: "📅", name: "常客", desc: "连续 7 天使用厨房(隐藏)" },
-      };
+/* ============ 样式 ============ */
+const style=document.createElement("style");
+style.setAttribute("data-plugin","char-kitchen");
+style.textContent=`
+.ck{--bg:#fff7ec;--ink:#3a2a1a;--acc:#e8863b;--card:#fff;
+  position:fixed;inset:0;background:var(--bg);color:var(--ink);
+  font-family:system-ui,'PingFang SC',sans-serif;
+  display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box;}
+.ck-top{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 16px;font-weight:700;border-bottom:1px solid rgba(0,0,0,.05);flex-shrink:0;}
+.ck-close{border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--ink);}
+.ck-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 16px 20px;position:relative;scroll-behavior:smooth;}
+.ck-nav{height:60px;background:var(--card);display:flex;
+  box-shadow:0 -4px 20px rgba(0,0,0,.08);border-top:1px solid rgba(0,0,0,.05);flex-shrink:0;}
+.ck-nav button{flex:1;background:none;border:none;font-size:11px;color:#888;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;}
+.ck-nav button.on{color:var(--acc);font-weight:700;}
+.ck-nav .ico{font-size:20px;}
+.midnight-tag{display:inline-block;padding:2px 10px;border-radius:10px;
+  background:linear-gradient(90deg,#3a3f6b,#5a3a6b);color:#ffb86b;font-size:11px;margin-left:8px;}
+.craving{background:linear-gradient(90deg,#ffdcae,#ffb98a);padding:10px 14px;border-radius:12px;
+  margin:8px 0;cursor:pointer;display:flex;gap:10px;align-items:center;font-size:13px;
+  box-shadow:0 4px 12px rgba(232,134,59,.2);}
+.craving img{width:36px;height:36px;border-radius:50%;object-fit:cover;}
+.stove-fixed{position:sticky;top:0;background:var(--bg);padding:8px 0 4px;z-index:3;}
+.stove{position:relative;width:100%;max-width:340px;height:200px;margin:0 auto;
+  background:linear-gradient(180deg,#f6dfb8,#d9b878);border-radius:20px;overflow:visible;
+  box-shadow:inset 0 -6px 0 rgba(0,0,0,.08);}
+.ck[data-theme=night] .stove{background:linear-gradient(180deg,#2a2e4a,#1a1d2e);}
+.pan-holder{position:absolute;left:50%;top:40px;transform:translateX(-50%);
+  width:200px;height:80px;z-index:2;cursor:pointer;transform-origin:50% 100%;}
+.pan-holder.toss{animation:toss .7s ease;}
+@keyframes toss{0%{transform:translateX(-50%) rotate(0);} 30%{transform:translateX(-50%) rotate(-22deg) translateY(-18px);} 60%{transform:translateX(-50%) rotate(14deg) translateY(-10px);} 100%{transform:translateX(-50%) rotate(0);}}
+.pan-holder.shake{animation:panShake .1s linear 5;}
+@keyframes panShake{0%,100%{transform:translateX(-50%);}50%{transform:translateX(calc(-50% + 4px));}}
+.pan-svg{width:100%;height:100%;overflow:visible;}
+.pan-food{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:0 0 50% 50%/0 0 100% 100%;}
+.pan-food span{position:absolute;font-size:18px;transform:translate(-50%,-50%);transition:left .3s ease,top .3s ease;}
+.pan-food span img{display:block;}
+.flame-holder{position:absolute;left:50%;top:90px;transform:translateX(-50%);
+  width:80px;height:100px;z-index:1;pointer-events:none;display:flex;justify-content:center;align-items:flex-start;}
+.fire-ctrl{display:flex;align-items:center;justify-content:center;gap:10px;padding:6px 0;font-size:12px;}
+.fire-ctrl input[type=range]{width:180px;accent-color:var(--acc);}
+.spice-fx-layer{position:fixed;pointer-events:none;z-index:9999;left:0;top:0;width:100vw;height:100vh;overflow:hidden;}
+.sp-p{position:fixed;font-weight:bold;}
+@keyframes sp-burst{0%{transform:translate(0,0) scale(.3);opacity:1;}100%{transform:translate(var(--dx),var(--dy)) scale(1);opacity:0;}}
+@keyframes sp-drip{0%{transform:translate(0,0);opacity:1;}100%{transform:translate(var(--dx),var(--dy)) scale(.5);opacity:0;}}
+@keyframes sp-rise{0%{transform:translate(0,0);opacity:0;}20%{opacity:1;}100%{transform:translate(var(--dx),calc(var(--dy) - 40px));opacity:0;}}
+@keyframes sp-swirl{0%{transform:translate(0,0) rotate(0);opacity:1;}100%{transform:translate(var(--dx),var(--dy)) rotate(720deg);opacity:0;}}
+@keyframes sp-splash{0%{transform:translate(0,0) scale(0);opacity:1;}100%{transform:translate(var(--dx),var(--dy)) scale(2.2);opacity:0;}}
+@keyframes sp-halo{0%{transform:scale(.3);opacity:1;}100%{transform:scale(3);opacity:0;}}
+@keyframes sp-flambe{0%{transform:translate(0,0) scale(.3);opacity:1;}50%{transform:translate(calc(var(--dx)/2),calc(var(--dy) - 20px)) scale(1.8);opacity:.9;}100%{transform:translate(var(--dx),var(--dy)) scale(2.5);opacity:0;}}
+@keyframes sp-twinkle{0%,100%{transform:translate(0,0) scale(1);opacity:.3;}50%{transform:translate(var(--dx),var(--dy)) scale(1.5) rotate(180deg);opacity:1;}}
+@keyframes sp-drop{0%{transform:translate(0,0);opacity:0;}30%{opacity:1;}100%{transform:translate(var(--dx),var(--dy)) scale(.8);opacity:0;}}
+@keyframes sp-bubble{0%{transform:translate(0,0) scale(.5);opacity:0;}30%{opacity:1;}100%{transform:translate(var(--dx),var(--dy)) scale(1.4);opacity:0;}}
+.sp-p.burst,.sp-p.burst-shake{animation:sp-burst 1s ease-out forwards;} .sp-p.drip{animation:sp-drip 1.4s ease-in forwards;}
+.sp-p.halo{animation:sp-halo 1s ease-out forwards;} .sp-p.swirl{animation:sp-swirl 1.2s linear forwards;}
+.sp-p.splash{animation:sp-splash 1s ease-out forwards;} .sp-p.rise{animation:sp-rise 1.5s ease-out forwards;}
+.sp-p.flambe{animation:sp-flambe 1s ease-out forwards;} .sp-p.twinkle{animation:sp-twinkle 1.5s ease-in-out forwards;}
+.sp-p.drop{animation:sp-drop 1.6s ease-in forwards;} .sp-p.bubble{animation:sp-bubble 1.8s ease-out forwards;}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;}
+.chip{padding:5px 10px;border:1px solid rgba(0,0,0,.1);background:var(--card);border-radius:16px;cursor:pointer;font-size:12px;}
+.chip.on{background:var(--acc);color:#fff;border-color:var(--acc);}
+.h{font-weight:700;margin:12px 0 6px;font-size:13px;display:flex;justify-content:space-between;align-items:center;}
+.h .caret{font-size:11px;color:#999;cursor:pointer;user-select:none;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:5px;}
+.cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--card);border-radius:10px;cursor:pointer;user-select:none;transition:.15s;position:relative;}
+.cell.on{background:var(--acc);transform:scale(1.08);}
+.cabinet{border:1px dashed rgba(0,0,0,.15);border-radius:12px;padding:8px;margin-top:6px;}
+.btn{padding:9px 16px;border:none;background:var(--acc);color:#fff;border-radius:10px;cursor:pointer;font-weight:700;font-size:13px;box-shadow:0 3px 10px rgba(0,0,0,.1);}
+.btn.ghost{background:transparent;color:var(--acc);border:1.5px solid var(--acc);box-shadow:none;}
+.btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;}
+.card{background:var(--card);border-radius:14px;padding:12px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+.card.dark{background:linear-gradient(135deg,#1a1023,#2a1035);color:#e8c8ff;border:1px solid #6a2a8a;box-shadow:0 0 16px rgba(140,60,200,.3);}
+.card.dark .tag{background:rgba(255,255,255,.08);color:#c8a8e8;}
+.dish-emo{font-size:26px;letter-spacing:2px;line-height:30px;}
+.dish-name{font-weight:700;font-size:15px;margin:4px 0;}
+.tag{display:inline-block;background:rgba(0,0,0,.06);padding:2px 8px;border-radius:10px;font-size:11px;margin:2px 4px 2px 0;color:#666;}
 
-      /* ============ 3. 状态管理 ============ */
-      const hour = new Date().getHours();
-      const isRealLateNight = (hour >= 22 || hour < 4);
-      
-      const S = {
-        tab: "stove", pot: "wok", tool: "spatula", fire: 2,
-        picked: [], spices: [],
-        recipes: (await roche.storage.get("recipes")) || [],
-        feeds: (await roche.storage.get("feedRecords")) || [],
-        custom: (await roche.storage.get("customIngredients")) || [],
-        cabinetOpen: false,
-        catOpen: { "肉类": true, "蔬菜": true, "水果": false, "主食": false, "蛋点": false, "饮品": false, "怪东西": false, "自定义": true },
-        forceMidnight: (await roche.storage.get("forceMidnight")) || false,
-        paddingTop: (await roche.storage.get("paddingTop")) || 0,
-        chatWith: null, chatLog: [], cravingBanner: null, pendingDish: null,
-        bookTab: "all", feedTab: "feedChar", chatStatusOpen: true, isTyping: false,
-        
-        achievements: (await roche.storage.get("achievements")) || {},
-        spiceUsed: new Set((await roche.storage.get("spiceUsed")) || []),
-        potUsed: new Set((await roche.storage.get("potUsed")) || []),
-        ingredientsUsed: new Set((await roche.storage.get("ingredientsUsed")) || []),
-        darkEmojisUsed: new Set((await roche.storage.get("darkEmojisUsed")) || []),
-        darkCount: (await roche.storage.get("darkCount")) || 0,
-        midnightCount: (await roche.storage.get("midnightCount")) || 0,
-        cravingAnsCount: (await roche.storage.get("cravingAnsCount")) || 0,
-        memoryCount: (await roche.storage.get("memoryCount")) || 0,
-        tossCount: (await roche.storage.get("tossCount")) || 0,
-        giftCount: (await roche.storage.get("giftCount")) || 0,
-        feedPerChar: (await roche.storage.get("feedPerChar")) || {},
-        potDishCount: (await roche.storage.get("potDishCount")) || { wok: 0, flat: 0, pressure: 0 },
-        reactionSet: new Set((await roche.storage.get("reactionSet")) || []),
-        themesUsed: new Set((await roche.storage.get("themesUsed")) || []),
-        lastCookDate: (await roche.storage.get("lastCookDate")) || "",
-        consecutiveCookDays: (await roche.storage.get("consecutiveCookDays")) || 0,
-        achOpen: true, konamiSeq: [],
-      };
-      
-      S.theme = (await roche.storage.get("theme")) || ((isRealLateNight || S.forceMidnight) ? "night" : "warm");
-      const isLateNight = isRealLateNight || S.forceMidnight;
+/* 弹窗样式修复：确保不透明 */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;z-index:9998;}
+.loader-box{background:var(--card);border-radius:20px;padding:32px 44px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);min-width:220px;color:var(--ink);opacity:1;}
+.spinner{font-size:48px;display:inline-block;animation:spin 1.2s linear infinite;}
+@keyframes spin{0%{transform:rotate(0);}100%{transform:rotate(360deg);}}
+.loader-text{margin-top:12px;font-size:13px;font-weight:600;color:var(--ink);}
+.congrats{background:var(--card);border-radius:20px;padding:26px;text-align:center;color:var(--ink);box-shadow:0 10px 40px rgba(0,0,0,.2);animation:pop .4s ease-out;max-width:320px;opacity:1;}
+.congrats.dark{background:linear-gradient(135deg,#2a0d3a,#5a1a6a,#8a2a9a);color:#f0d8ff;box-shadow:0 0 60px rgba(160,60,200,.6),inset 0 0 30px rgba(200,100,240,.3);}
+.congrats.dark h3{text-shadow:0 0 20px #b06bff,0 0 40px #6a2a8a;animation:evilGlow 1.5s ease-in-out infinite alternate;}
+@keyframes evilGlow{0%{filter:hue-rotate(0);}100%{filter:hue-rotate(30deg) brightness(1.2);}}
+@keyframes pop{0%{transform:scale(.5);opacity:0;}100%{transform:scale(1);opacity:1;}}
+.congrats h3{margin:6px 0;font-size:20px;}
+.congrats .big-emo{font-size:60px;margin:8px 0;filter:drop-shadow(0 0 20px rgba(0,0,0,.1));}
 
-      /* ============ 4. 辅助函数 ============ */
-      function renderEmo(e, size = 26) {
-        if (e.startsWith("::")) {
-          const c = S.custom.find(x => x.id === e.slice(2));
-          if (c) {
-            if (c.image) return `<img src="${c.image}" style="width:${size}px;height:${size}px;object-fit:cover;vertical-align:text-bottom;display:inline-block;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.2);">`;
-            return c.emoji || "🖼";
-          }
-          return "🖼";
-        }
-        return e;
-      }
-      
-      function renderEmoList(emojis, size = 26) {
-        if (!emojis || emojis.length === 0) return "";
-        if (emojis.length <= 6) return emojis.map(e => renderEmo(e, size)).join("");
-        const head = emojis.slice(0, 3).map(e => renderEmo(e, size)).join("");
-        const tail = emojis.slice(-3).map(e => renderEmo(e, size)).join("");
-        return `${head}<span style="margin:0 4px;color:#888;font-weight:bold;font-size:${size * 0.7}px;vertical-align:middle;">···</span>${tail}`;
-      }
-
-      function scrollToBottom(el) {
-        setTimeout(() => { if (el) el.scrollTop = el.scrollHeight; }, 50);
-      }
-
-      /* ============ 5. CSS 样式 ============ */
-      const style = document.createElement("style");
-      style.setAttribute("data-plugin", "char-kitchen");
-      style.textContent = `
-        .ck { --bg:#fff7ec; --ink:#3a2a1a; --acc:#e8863b; --card:#fff; position:fixed; inset:0; background:var(--bg); color:var(--ink); font-family:system-ui,'PingFang SC',sans-serif; display:flex; flex-direction:column; overflow:hidden; box-sizing:border-box; }
-        .ck-top { display:flex; justify-content:space-between; align-items:center; padding:10px 16px; font-weight:700; border-bottom:1px solid rgba(0,0,0,.05); flex-shrink:0; }
-        .ck-close { border:none; background:transparent; font-size:22px; cursor:pointer; color:var(--ink); }
-        .ck-body { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:8px 16px 20px; position:relative; scroll-behavior:smooth; }
-        .ck-nav { height:60px; background:var(--card); display:flex; box-shadow:0 -4px 20px rgba(0,0,0,.08); border-top:1px solid rgba(0,0,0,.05); flex-shrink:0; }
-        .ck-nav button { flex:1; background:none; border:none; font-size:11px; color:#888; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 0; }
-        .ck-nav button.on { color:var(--acc); font-weight:700; }
-        .ck-nav .ico { font-size:20px; }
-        .midnight-tag { display:inline-block; padding:2px 10px; border-radius:10px; background:linear-gradient(90deg,#3a3f6b,#5a3a6b); color:#ffb86b; font-size:11px; margin-left:8px; }
-        .craving { background:linear-gradient(90deg,#ffdcae,#ffb98a); padding:10px 14px; border-radius:12px; margin:8px 0; cursor:pointer; display:flex; gap:10px; align-items:center; font-size:13px; box-shadow:0 4px 12px rgba(232,134,59,.2); }
-        .craving img { width:36px; height:36px; border-radius:50%; object-fit:cover; }
-        
-        .stove-fixed { position:sticky; top:0; background:var(--bg); padding:8px 0 4px; z-index:3; }
-        .stove { position:relative; width:100%; max-width:340px; height:200px; margin:0 auto; background:linear-gradient(180deg,#f6dfb8,#d9b878); border-radius:20px; overflow:visible; box-shadow:inset 0 -6px 0 rgba(0,0,0,.08); }
-        .ck[data-theme=night] .stove { background:linear-gradient(180deg,#2a2e4a,#1a1d2e); }
-        .pan-holder { position:absolute; left:50%; top:40px; transform:translateX(-50%); width:200px; height:80px; z-index:2; cursor:pointer; transform-origin:50% 100%; }
-        .pan-holder.toss { animation:toss .7s ease; }
-        @keyframes toss { 0% { transform:translateX(-50%) rotate(0); } 30% { transform:translateX(-50%) rotate(-22deg) translateY(-18px); } 60% { transform:translateX(-50%) rotate(14deg) translateY(-10px); } 100% { transform:translateX(-50%) rotate(0); } }
-        .pan-holder.shake { animation:panShake .1s linear 5; }
-        @keyframes panShake { 0%,100% { transform:translateX(-50%); } 50% { transform:translateX(calc(-50% + 4px)); } }
-        .pan-svg { width:100%; height:100%; overflow:visible; }
-        .pan-food { position:absolute; inset:0; pointer-events:none; overflow:hidden; border-radius:0 0 50% 50%/0 0 100% 100%; }
-        .pan-food span { position:absolute; font-size:18px; transform:translate(-50%,-50%); transition:left .3s ease, top .3s ease; }
-        .pan-food span img { display:block; }
-        .flame-holder { position:absolute; left:50%; top:90px; transform:translateX(-50%); width:80px; height:100px; z-index:1; pointer-events:none; display:flex; justify-content:center; align-items:flex-start; }
-        .fire-ctrl { display:flex; align-items:center; justify-content:center; gap:10px; padding:6px 0; font-size:12px; }
-        .fire-ctrl input[type=range] { width:180px; accent-color:var(--acc); }
-        
-        .spice-fx-layer { position:fixed; pointer-events:none; z-index:9999; left:0; top:0; width:100vw; height:100vh; overflow:hidden; }
-        .sp-p { position:fixed; font-weight:bold; }
-        @keyframes sp-burst { 0% { transform:translate(0,0) scale(.3); opacity:1; } 100% { transform:translate(var(--dx),var(--dy)) scale(1); opacity:0; } }
-        @keyframes sp-drip { 0% { transform:translate(0,0); opacity:1; } 100% { transform:translate(var(--dx),var(--dy)) scale(.5); opacity:0; } }
-        @keyframes sp-rise { 0% { transform:translate(0,0); opacity:0; } 20% { opacity:1; } 100% { transform:translate(var(--dx),calc(var(--dy) - 40px)); opacity:0; } }
-        @keyframes sp-swirl { 0% { transform:translate(0,0) rotate(0); opacity:1; } 100% { transform:translate(var(--dx),var(--dy)) rotate(720deg); opacity:0; } }
-        @keyframes sp-splash { 0% { transform:translate(0,0) scale(0); opacity:1; } 100% { transform:translate(var(--dx),var(--dy)) scale(2.2); opacity:0; } }
-        @keyframes sp-halo { 0% { transform:scale(.3); opacity:1; } 100% { transform:scale(3); opacity:0; } }
-        @keyframes sp-flambe { 0% { transform:translate(0,0) scale(.3); opacity:1; } 50% { transform:translate(calc(var(--dx)/2),calc(var(--dy) - 20px)) scale(1.8); opacity:.9; } 100% { transform:translate(var(--dx),var(--dy)) scale(2.5); opacity:0; } }
-        @keyframes sp-twinkle { 0%,100% { transform:translate(0,0) scale(1); opacity:.3; } 50% { transform:translate(var(--dx),var(--dy)) scale(1.5) rotate(180deg); opacity:1; } }
-        @keyframes sp-drop { 0% { transform:translate(0,0); opacity:0; } 30% { opacity:1; } 100% { transform:translate(var(--dx),var(--dy)) scale(.8); opacity:0; } }
-        @keyframes sp-bubble { 0% { transform:translate(0,0) scale(.5); opacity:0; } 30% { opacity:1; } 100% { transform:translate(var(--dx),var(--dy)) scale(1.4); opacity:0; } }
-        .sp-p.burst, .sp-p.burst-shake { animation:sp-burst 1s ease-out forwards; }
-        .sp-p.drip { animation:sp-drip 1.4s ease-in forwards; }
-        .sp-p.halo { animation:sp-halo 1s ease-out forwards; }
-        .sp-p.swirl { animation:sp-swirl 1.2s linear forwards; }
-        .sp-p.splash { animation:sp-splash 1s ease-out forwards; }
-        .sp-p.rise { animation:sp-rise 1.5s ease-out forwards; }
-        .sp-p.flambe { animation:sp-flambe 1s ease-out forwards; }
-        .sp-p.twinkle { animation:sp-twinkle 1.5s ease-in-out forwards; }
-        .sp-p.drop { animation:sp-drop 1.6s ease-in forwards; }
-        .sp-p.bubble { animation:sp-bubble 1.8s ease-out forwards; }
-        
-        .row { display:flex; gap:6px; flex-wrap:wrap; margin:8px 0; }
-        .chip { padding:5px 10px; border:1px solid rgba(0,0,0,.1); background:var(--card); border-radius:16px; cursor:pointer; font-size:12px; }
-        .chip.on { background:var(--acc); color:#fff; border-color:var(--acc); }
-        .h { font-weight:700; margin:12px 0 6px; font-size:13px; display:flex; justify-content:space-between; align-items:center; }
-        .h .caret { font-size:11px; color:#999; cursor:pointer; user-select:none; }
-        .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(46px,1fr)); gap:5px; }
-        .cell { aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:22px; background:var(--card); border-radius:10px; cursor:pointer; user-select:none; transition:.15s; position:relative; }
-        .cell.on { background:var(--acc); transform:scale(1.08); }
-        .cabinet { border:1px dashed rgba(0,0,0,.15); border-radius:12px; padding:8px; margin-top:6px; }
-        .btn { padding:9px 16px; border:none; background:var(--acc); color:#fff; border-radius:10px; cursor:pointer; font-weight:700; font-size:13px; box-shadow:0 3px 10px rgba(0,0,0,.1); }
-        .btn.ghost { background:transparent; color:var(--acc); border:1.5px solid var(--acc); box-shadow:none; }
-        .btn:disabled { opacity:.4; cursor:not-allowed; box-shadow:none; }
-        .card { background:var(--card); border-radius:14px; padding:12px; margin-bottom:10px; box-shadow:0 2px 8px rgba(0,0,0,.04); }
-        .card.dark { background:linear-gradient(135deg,#1a1023,#2a1035); color:#e8c8ff; border:1px solid #6a2a8a; box-shadow:0 0 16px rgba(140,60,200,.3); }
-        .card.dark .tag { background:rgba(255,255,255,.08); color:#c8a8e8; }
-        .dish-emo { font-size:26px; letter-spacing:2px; line-height:30px; }
-        .dish-name { font-weight:700; font-size:15px; margin:4px 0; }
-        .tag { display:inline-block; background:rgba(0,0,0,.06); padding:2px 8px; border-radius:10px; font-size:11px; margin:2px 4px 2px 0; color:#666; }
-        
-        .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px); display:flex; align-items:center; justify-content:center; z-index:9998; }
-        .loader-box { background:var(--card); border-radius:20px; padding:32px 44px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.3); min-width:220px; color:var(--ink); }
-        .spinner { font-size:48px; display:inline-block; animation:spin 1.2s linear infinite; }
-        @keyframes spin { 0% { transform:rotate(0); } 100% { transform:rotate(360deg); } }
-        .loader-text { margin-top:12px; font-size:13px; font-weight:600; }
-        
-        @keyframes darkPulse { 0% { opacity:0; transform:scale(1.2); } 20% { opacity:1; } 100% { opacity:0; transform:scale(1); } }
-        @keyframes bodyShake { 0%,100% { transform:translate(0,0); } 25% { transform:translate(-3px,2px); } 75% { transform:translate(3px,-2px); } }
-        
-        .chat-page { display:flex; flex-direction:column; height:100%; }
-        .chat-head { display:flex; align-items:center; gap:12px; padding:10px; background:var(--card); border-radius:12px; margin-bottom:10px; }
-        .chat-head img { width:56px; height:56px; border-radius:50%; object-fit:cover; }
-        .chat-head .info { flex:1; }
-        .chat-head .name { font-weight:700; font-size:15px; }
-        .chat-head .sub { font-size:11px; color:#888; display:flex; align-items:center; gap:2px; }
-        .status-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px; overflow:hidden; transition:max-height 0.3s ease; }
-        .status-cell { background:var(--card); border-radius:10px; padding:8px 10px; font-size:12px; line-height:1.4; }
-        .status-cell .lbl { font-size:10px; color:#999; font-weight:700; margin-bottom:2px; }
-        .chat-log { background:var(--card); border-radius:12px; padding:10px; flex:1; overflow-y:auto; min-height:150px; scroll-behavior:smooth; }
-        .chat-msg { margin-bottom:6px; padding:8px 12px; border-radius:12px; max-width:85%; font-size:13px; line-height:1.5; }
-        .chat-msg.me { background:var(--acc); color:#fff; margin-left:auto; }
-        .chat-msg.other { background:rgba(0,0,0,.05); }
-        .ck[data-theme=night] .chat-msg.other { background:rgba(255,255,255,.08); }
-        .chat-in { display:flex; gap:6px; margin-top:8px; }
-        .chat-in input { flex:1; padding:9px; border:1px solid rgba(0,0,0,.1); border-radius:10px; background:var(--card); color:var(--ink); }
-        .textarea { width:100%; min-height:80px; padding:10px; border:1px solid rgba(0,0,0,.1); border-radius:10px; background:var(--card); color:var(--ink); font:inherit; box-sizing:border-box; }
-        .share-code { font-size:11px; color:var(--acc); margin-top:4px; font-family:ui-monospace,Menlo,monospace; cursor:pointer; word-break:break-all; }
-        .tab-bar { display:flex; background:var(--card); border-radius:12px; padding:4px; margin-bottom:12px; }
-        .tab-bar button { flex:1; padding:8px; border:none; background:transparent; border-radius:8px; font-weight:700; color:#888; cursor:pointer; transition:0.2s; }
-        .tab-bar button.on { background:var(--acc); color:#fff; }
-        
-        @keyframes superSlowFloat { 
-          0% { transform: translateY(100vh) scale(0.8) rotate(-10deg); opacity: 0; } 
-          10% { opacity: 1; transform: translateY(80vh) scale(1) rotate(5deg); } 
-          90% { opacity: 1; } 
-          100% { transform: translateY(-20vh) scale(1.1) rotate(-5deg); opacity: 0; } 
-        }
-        .feed-bubble { position:absolute; font-size:54px; padding:30px; margin:-20px; animation:superSlowFloat linear forwards; cursor:pointer; pointer-events:auto; z-index:10; filter:drop-shadow(0 4px 12px rgba(0,0,0,.3)); transition:transform 0.2s; }
-        .feed-bubble:hover { transform:scale(1.15) !important; z-index:100; animation-play-state:paused; }
-        .typing-dots { display:inline-flex; gap:4px; align-items:center; height:18px; padding:0 4px; }
-        .typing-dots span { width:6px; height:6px; background:currentColor; border-radius:50%; animation:bounce 1.4s infinite ease-in-out both; opacity:0.6; }
-        .typing-dots span:nth-child(1) { animation-delay:-0.32s; } .typing-dots span:nth-child(2) { animation-delay:-0.16s; }
-        @keyframes bounce { 0%, 80%, 100% { transform:scale(0); } 40% { transform:scale(1); } }
-      `;
+@keyframes darkPulse{0%{opacity:0;transform:scale(1.2);}20%{opacity:1;}100%{opacity:0;transform:scale(1);}}
+@keyframes bodyShake{0%,100%{transform:translate(0,0);}25%{transform:translate(-3px,2px);}75%{transform:translate(3px,-2px);}}
+.chat-page{display:flex;flex-direction:column;height:100%;}
+.chat-head{display:flex;align-items:center;gap:12px;padding:10px;background:var(--card);border-radius:12px;margin-bottom:10px;}
+.chat-head img{width:56px;height:56px;border-radius:50%;object-fit:cover;}
+.chat-head .info{flex:1;}
+.chat-head .name{font-weight:700;font-size:15px;}
+.chat-head .sub{font-size:11px;color:#888;display:flex;align-items:center;gap:2px;}
+.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;overflow:hidden;transition:max-height 0.3s ease;}
+.status-cell{background:var(--card);border-radius:10px;padding:8px 10px;font-size:12px;line-height:1.4;}
+.status-cell .lbl{font-size:10px;color:#999;font-weight:700;margin-bottom:2px;}
+.chat-log{background:var(--card);border-radius:12px;padding:10px;flex:1;overflow-y:auto;min-height:150px; scroll-behavior:smooth;}
+.chat-msg{margin-bottom:6px;padding:8px 12px;border-radius:12px;max-width:85%;font-size:13px;line-height:1.5;}
+.chat-msg.me{background:var(--acc);color:#fff;margin-left:auto;}
+.chat-msg.other{background:rgba(0,0,0,.05);}
+.ck[data-theme=night] .chat-msg.other{background:rgba(255,255,255,.08);}
+.chat-in{display:flex;gap:6px;margin-top:8px;}
+.chat-in input{flex:1;padding:9px;border:1px solid rgba(0,0,0,.1);border-radius:10px;background:var(--card);color:var(--ink);}
+.textarea{width:100%;min-height:80px;padding:10px;border:1px solid rgba(0,0,0,.1);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;box-sizing:border-box;}
+.share-code{font-size:11px;color:var(--acc);margin-top:4px;font-family:ui-monospace,Menlo,monospace;cursor:pointer;word-break:break-all;}
+.tab-bar{display:flex;background:var(--card);border-radius:12px;padding:4px;margin-bottom:12px;}
+.tab-bar button{flex:1;padding:8px;border:none;background:transparent;border-radius:8px;font-weight:700;color:#888;cursor:pointer;transition:0.2s;}
+.tab-bar button.on{background:var(--acc);color:#fff;}
+@keyframes slowFloatUp { 0% { transform: translateY(100vh) scale(0.8) rotate(-10deg); opacity: 0; } 10% { opacity: 1; transform: translateY(80vh) scale(1) rotate(5deg); } 90% { opacity: 1; } 100% { transform: translateY(-20vh) scale(1.1) rotate(-5deg); opacity: 0; } }
+.feed-bubble { position:absolute; font-size:48px; padding:20px; animation: slowFloatUp linear forwards; cursor:pointer; pointer-events:auto; z-index:10; filter:drop-shadow(0 4px 12px rgba(0,0,0,.3)); transition:transform 0.2s;}
+.feed-bubble:hover { transform:scale(1.2) !important; z-index:100; animation-play-state:paused; }
+.feed-bubble:active { transform:scale(0.9) !important; }
+.typing-dots { display:inline-flex; gap:4px; align-items:center; height:18px; padding:0 4px; }
+.typing-dots span { width:6px; height:6px; background:currentColor; border-radius:50%; animation:bounce 1.4s infinite ease-in-out both; opacity:0.6; }
+.typing-dots span:nth-child(1) { animation-delay:-0.32s; } .typing-dots span:nth-child(2) { animation-delay:-0.16s; }
+@keyframes bounce { 0%, 80%, 100% { transform:scale(0); } 40% { transform:scale(1); } }
+`;
       document.head.appendChild(style);
 
       /* ============ 6. 挂载与初始化 ============ */
-      container.innerHTML = `
-        <div class="ck" data-theme="${S.theme}">
-          <div class="ck-top">
-            <div>🍳 Char 的厨房${isLateNight ? '<span class="midnight-tag">🌙 深夜食堂</span>' : ''}</div>
-            <button class="ck-close">×</button>
-          </div>
-          <div class="ck-body" id="ckBody"></div>
-          <div class="ck-nav" id="ckNav">
-            ${[["stove", "🍳", "料理台"], ["book", "📖", "菜谱"], ["feed", "🥄", "投喂"], ["custom", "🖼", "自定义"], ["set", "⚙️", "设置"]]
-              .map(([k, i, n]) => `<button data-t="${k}"><span class="ico">${i}</span>${n}</button>`).join("")}
-          </div>
-        </div>`;
-      
-      const root = container.querySelector(".ck");
-      const body = container.querySelector("#ckBody");
-      container.querySelector(".ck-close").onclick = () => roche.ui.closeApp();
+      container.innerHTML=`<div class="ck" data-theme="${S.theme}">
+        <div class="ck-top">
+          <div>🍳 Char 的厨房${isLateNight?'<span class="midnight-tag">🌙 深夜食堂</span>':''}</div>
+          <button class="ck-close">×</button>
+        </div>
+        <div class="ck-body" id="ckBody"></div>
+        <div class="ck-nav" id="ckNav">
+          ${[["stove","🍳","料理台"],["book","📖","菜谱"],["feed","🥄","投喂"],["custom","🖼","自定义"],["set","⚙️","设置"]]
+            .map(([k,i,n])=>`<button data-t="${k}"><span class="ico">${i}</span>${n}</button>`).join("")}
+        </div>
+      </div>`;
+      const root=container.querySelector(".ck");
+      const body=container.querySelector("#ckBody");
+      container.querySelector(".ck-close").onclick=()=>roche.ui.closeApp();
 
-      function applyTheme() {
-        const t = THEMES[S.theme] || THEMES.warm;
-        root.style.setProperty("--bg", t.bg); root.style.setProperty("--ink", t.ink);
-        root.style.setProperty("--acc", t.acc); root.style.setProperty("--card", t.card);
-        root.setAttribute("data-theme", S.theme);
+      function applyTheme(){
+        const t=THEMES[S.theme]||THEMES.warm;
+        root.style.setProperty("--bg",t.bg); root.style.setProperty("--ink",t.ink);
+        root.style.setProperty("--acc",t.acc); root.style.setProperty("--card",t.card);
+        root.setAttribute("data-theme",S.theme);
         root.style.paddingTop = S.paddingTop + "px";
       }
-
-      function nav() {
-        container.querySelectorAll("#ckNav button").forEach(b => {
-          b.classList.toggle("on", b.dataset.t === S.tab);
-          b.onclick = () => { S.tab = b.dataset.t; render(); };
+      function nav(){
+        container.querySelectorAll("#ckNav button").forEach(b=>{
+          b.classList.toggle("on",b.dataset.t===S.tab);
+          b.onclick=()=>{ S.tab=b.dataset.t; render(); };
         });
       }
 
-      /* ============ 7. SVG 图形生成 ============ */
-      function flameSVG(level) {
-        if (level === 0) return `<div style="opacity:.4;font-size:11px;color:#888;margin-top:20px;">🚫 熄火</div>`;
-        const scale = 0.4 + level * 0.28, w = 60 * scale, h = 80 * scale;
-        return `
-          <svg width="${w}" height="${h}" viewBox="0 0 60 80">
-            <defs><radialGradient id="fg${level}" cx="50%" cy="80%" r="60%">
-              <stop offset="0%" stop-color="#fff2b0"/><stop offset="40%" stop-color="#ffb03a"/><stop offset="100%" stop-color="#e63b1e" stop-opacity="0.9"/>
-            </radialGradient></defs>
-            <path fill="url(#fg${level})" d="M30 78 C 5 65, 10 40, 25 25 C 22 40, 35 42, 32 22 C 40 30, 52 45, 48 62 C 46 72, 40 78, 30 78 Z">
-              <animate attributeName="d" dur="${(0.8 - level * 0.1).toFixed(2)}s" repeatCount="indefinite" values="M30 78 C 5 65, 10 40, 25 25 C 22 40, 35 42, 32 22 C 40 30, 52 45, 48 62 C 46 72, 40 78, 30 78 Z; M30 78 C 8 68, 6 38, 22 22 C 24 42, 36 40, 30 18 C 42 28, 54 46, 50 64 C 46 74, 40 78, 30 78 Z; M30 78 C 5 65, 10 40, 25 25 C 22 40, 35 42, 32 22 C 40 30, 52 45, 48 62 C 46 72, 40 78, 30 78 Z"/>
-            </path>
-            <path fill="#fff2a0" opacity=".9" d="M30 74 C 18 66, 20 48, 28 36 C 27 46, 34 46, 32 32 C 38 40, 44 52, 42 64 C 40 70, 36 74, 30 74 Z">
-              <animate attributeName="opacity" values=".9;.5;.9" dur=".4s" repeatCount="indefinite"/>
-            </path>
-          </svg>`;
+      function scrollToBottom(el) {
+        setTimeout(() => { if(el) el.scrollTop = el.scrollHeight; }, 50);
       }
 
-      function panSVG(pot) {
-        if (pot === "pressure") return `<svg class="pan-svg" viewBox="0 0 200 80"><ellipse cx="100" cy="55" rx="80" ry="22" fill="#555"/><rect x="88" y="10" width="24" height="14" rx="3" fill="#888"/><ellipse cx="100" cy="35" rx="70" ry="10" fill="#777"/></svg>`;
-        if (pot === "flat") return `<svg class="pan-svg" viewBox="0 0 200 80"><ellipse cx="85" cy="54" rx="70" ry="16" fill="#2a2a2a"/><ellipse cx="85" cy="50" rx="66" ry="12" fill="#3d3d3d"/><rect x="150" y="48" width="45" height="6" rx="3" fill="#6b3e1a"/></svg>`;
+      /* ============ 7. SVG 图形生成 ============ */
+      function flameSVG(level){
+        if(level===0) return `<div style="opacity:.4;font-size:11px;color:#888;margin-top:20px;">🚫 熄火</div>`;
+        const scale=0.4+level*0.28, w=60*scale, h=80*scale;
+        return `<svg width="${w}" height="${h}" viewBox="0 0 60 80">
+          <defs><radialGradient id="fg${level}" cx="50%" cy="80%" r="60%">
+            <stop offset="0%" stop-color="#fff2b0"/><stop offset="40%" stop-color="#ffb03a"/><stop offset="100%" stop-color="#e63b1e" stop-opacity="0.9"/>
+          </radialGradient></defs>
+          <path fill="url(#fg${level})" d="M30 78 C 5 65, 10 40, 25 25 C 22 40, 35 42, 32 22 C 40 30, 52 45, 48 62 C 46 72, 40 78, 30 78 Z">
+            <animate attributeName="d" dur="${(0.8-level*0.1).toFixed(2)}s" repeatCount="indefinite" values="M30 78 C 5 65, 10 40, 25 25 C 22 40, 35 42, 32 22 C 40 30, 52 45, 48 62 C 46 72, 40 78, 30 78 Z; M30 78 C 8 68, 6 38, 22 22 C 24 42, 36 40, 30 18 C 42 28, 54 46, 50 64 C 46 74, 40 78, 30 78 Z; M30 78 C 5 65, 10 40, 25 25 C 22 40, 35 42, 32 22 C 40 30, 52 45, 48 62 C 46 72, 40 78, 30 78 Z"/>
+          </path>
+          <path fill="#fff2a0" opacity=".9" d="M30 74 C 18 66, 20 48, 28 36 C 27 46, 34 46, 32 32 C 38 40, 44 52, 42 64 C 40 70, 36 74, 30 74 Z">
+            <animate attributeName="opacity" values=".9;.5;.9" dur=".4s" repeatCount="indefinite"/>
+          </path>
+        </svg>`;
+      }
+      function panSVG(pot){
+        if(pot==="pressure") return `<svg class="pan-svg" viewBox="0 0 200 80"><ellipse cx="100" cy="55" rx="80" ry="22" fill="#555"/><rect x="88" y="10" width="24" height="14" rx="3" fill="#888"/><ellipse cx="100" cy="35" rx="70" ry="10" fill="#777"/></svg>`;
+        if(pot==="flat") return `<svg class="pan-svg" viewBox="0 0 200 80"><ellipse cx="85" cy="54" rx="70" ry="16" fill="#2a2a2a"/><ellipse cx="85" cy="50" rx="66" ry="12" fill="#3d3d3d"/><rect x="150" y="48" width="45" height="6" rx="3" fill="#6b3e1a"/></svg>`;
         return `<svg class="pan-svg" viewBox="0 0 200 80"><path d="M20 42 Q100 100 180 42 Z" fill="#2a2a2a"/><ellipse cx="100" cy="44" rx="72" ry="6" fill="#1a1a1a"/></svg>`;
       }
 
       /* ============ 8. 调料特效 ============ */
-      function playSpiceFx(spice) {
-        const fx = SPICE_FX[spice]; if (!fx) return;
-        const panEl = container.querySelector("#pan");
-        if (!panEl) { roche.ui.toast(`${fx.name} 已加入！`); return; }
-        const rect = panEl.getBoundingClientRect();
-        const ox = rect.left + rect.width / 2, oy = rect.top + rect.height * 0.35, spread = rect.width * 0.3;
-        let layer = document.querySelector(".spice-fx-layer");
-        if (!layer) { layer = document.createElement("div"); layer.className = "spice-fx-layer"; document.body.appendChild(layer); }
-        const count = { burst: 14, "burst-shake": 14, drip: 6, halo: 1, swirl: 10, splash: 6, rise: 10, flambe: 3, twinkle: 12, drop: 12, bubble: 10 }[fx.anim] || 10;
-        
-        for (let i = 0; i < count; i++) {
-          const p = document.createElement("span");
-          p.className = `sp-p ${fx.anim}`; p.textContent = fx.p; p.style.color = fx.c;
-          const startX = ox + (Math.random() - .5) * spread, startY = oy - 40 - Math.random() * 20;
-          p.style.left = startX + "px"; p.style.top = startY + "px"; p.style.fontSize = (14 + Math.random() * 8) + "px";
-          p.style.setProperty("--dx", (ox - startX) + (Math.random() - .5) * 20 + "px");
-          p.style.setProperty("--dy", (oy - startY) + Math.random() * 10 + "px");
-          p.style.animationDelay = (Math.random() * .25) + "s";
-          layer.appendChild(p);
-          setTimeout(() => p.remove(), 2200);
+      function playSpiceFx(spice){
+        const fx=SPICE_FX[spice]; if(!fx) return;
+        const panEl=container.querySelector("#pan");
+        if(!panEl){ roche.ui.toast(`${fx.name} 已加入！`); return; }
+        const rect=panEl.getBoundingClientRect();
+        const ox=rect.left+rect.width/2, oy=rect.top+rect.height*0.35, spread=rect.width*0.3;
+        let layer=document.querySelector(".spice-fx-layer");
+        if(!layer){ layer=document.createElement("div"); layer.className="spice-fx-layer"; document.body.appendChild(layer); }
+        const count={burst:14,"burst-shake":14,drip:6,halo:1,swirl:10,splash:6,rise:10,flambe:3,twinkle:12,drop:12,bubble:10}[fx.anim]||10;
+        for(let i=0;i<count;i++){
+          const p=document.createElement("span"); p.className=`sp-p ${fx.anim}`; p.textContent=fx.p; p.style.color=fx.c;
+          const startX=ox+(Math.random()-.5)*spread, startY=oy-40-Math.random()*20;
+          p.style.left=startX+"px"; p.style.top=startY+"px"; p.style.fontSize=(14+Math.random()*8)+"px";
+          p.style.setProperty("--dx",(ox-startX)+(Math.random()-.5)*20+"px"); p.style.setProperty("--dy",(oy-startY)+Math.random()*10+"px");
+          p.style.animationDelay=(Math.random()*.25)+"s"; layer.appendChild(p); setTimeout(()=>p.remove(),2200);
         }
-        if (spice === "🌶️") { panEl.classList.add("shake"); setTimeout(() => panEl.classList.remove("shake"), 500); }
+        if(spice==="🌶️"){ panEl.classList.add("shake"); setTimeout(()=>panEl.classList.remove("shake"),500); }
         roche.ui.toast(`${fx.name} 已加入！`);
       }
 
       /* ============ 9. UI 弹窗与提示 ============ */
-      function showLoading(text) {
+      function showLoading(text){
         hideLoading();
-        const o = document.createElement("div"); o.className = "overlay"; o.id = "ckLoading";
-        o.innerHTML = `<div class="loader-box"><div class="spinner">${THEMES[S.theme]?.loader || "🍙"}</div><div class="loader-text">${text}</div></div>`;
+        const o=document.createElement("div"); o.className="overlay"; o.id="ckLoading";
+        o.innerHTML=`<div class="loader-box"><div class="spinner">${THEMES[S.theme]?.loader||"🍙"}</div><div class="loader-text">${text}</div></div>`;
         document.body.appendChild(o);
       }
+      function hideLoading(){ document.getElementById("ckLoading")?.remove(); }
       
-      function hideLoading() { document.getElementById("ckLoading")?.remove(); }
-      
-      async function editableDialog(title, initial) {
-        return new Promise(resolve => {
-          const o = document.createElement("div"); o.className = "overlay";
-          o.innerHTML = `
-            <div class="loader-box" style="text-align:left;max-width:340px;width:90%;">
-              <div style="font-weight:700;margin-bottom:8px;color:var(--ink);">${title}</div>
-              <textarea class="textarea" id="ta" style="min-height:120px;">${initial || ""}</textarea>
-              <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
-                <button class="btn ghost" id="cn">取消</button><button class="btn" id="ok">保存</button>
-              </div>
-            </div>`;
-          document.body.appendChild(o);
-          o.querySelector("#cn").onclick = () => { o.remove(); resolve(null); };
-          o.querySelector("#ok").onclick = () => { const v = o.querySelector("#ta").value.trim(); o.remove(); resolve(v); };
+      function showCongrats(dish, dark){
+        return new Promise(resolve=>{
+          const o=document.createElement("div"); o.className="overlay";
+          o.innerHTML=`<div class="congrats ${dark?"dark":""}">
+            <div style="font-size:12px;letter-spacing:4px;opacity:.7;margin-bottom:12px;">${dark?"☠️ 黑暗料理诞生":"🎉 恭喜获得"}</div>
+            <div class="big-emo" style="display:flex;justify-content:center;gap:4px;margin-bottom:12px;">${renderEmoList(dish.emojis, 40)}</div>
+            <h3 style="margin:0 0 8px;font-size:20px;">${dish.name}</h3>
+            <div style="font-size:13px;opacity:.85;margin-bottom:16px;">${dish.desc||""}</div>
+            ${dish.effect?`<div style="font-size:12px;color:var(--acc);margin-bottom:16px;">✨ ${dish.effect}</div>`:""}
+            <button class="btn" style="width:100%;${dark?"background:#8a3aa8;":""}" id="okBtn">收下这道菜</button>
+          </div>`;
+          document.body.appendChild(o); o.querySelector("#okBtn").onclick=()=>{ o.remove(); resolve(); };
         });
       }
-
-      function darkFlash() {
-        const f = document.createElement("div");
-        f.style.cssText = `position:fixed;inset:0;z-index:10000;pointer-events:none;background:radial-gradient(circle at 50% 50%,rgba(180,60,220,.5),rgba(20,0,30,.9));animation:darkPulse 1.6s ease-out forwards;`;
-        document.body.appendChild(f); setTimeout(() => f.remove(), 1700);
-        document.body.style.animation = "bodyShake .1s linear 8"; setTimeout(() => { document.body.style.animation = ""; }, 900);
+      
+      async function editableDialog(title, initial){
+        return new Promise(resolve=>{
+          const o=document.createElement("div"); o.className="overlay";
+          o.innerHTML=`<div class="loader-box" style="text-align:left;max-width:340px;width:90%;">
+            <div style="font-weight:700;margin-bottom:8px;color:var(--ink);">${title}</div>
+            <textarea class="textarea" id="ta" style="min-height:120px;">${initial||""}</textarea>
+            <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
+              <button class="btn ghost" id="cn">取消</button><button class="btn" id="ok">保存</button>
+            </div></div>`;
+          document.body.appendChild(o);
+          o.querySelector("#cn").onclick=()=>{ o.remove(); resolve(null); };
+          o.querySelector("#ok").onclick=()=>{ const v=o.querySelector("#ta").value.trim(); o.remove(); resolve(v); };
+        });
       }
-
+      
       async function showErrorDialog(actionName) {
         return await roche.ui.confirm({ title: "生成失败", message: `${actionName}时发生错误。AI 可能开小差了，要重试吗？\n(取消则返回上一页)` });
       }
 
       /* ============ 10. 成就解锁 ============ */
-      async function unlock(id) {
-        if (!ACHIEVEMENTS[id] || S.achievements[id]) return;
-        S.achievements[id] = Date.now();
-        await roche.storage.set("achievements", S.achievements);
-        
-        if (id === "dark_master" || id === "dark_ten" || id === "dark_thirty") darkFlash();
-        
-        const a = ACHIEVEMENTS[id];
-        const o = document.createElement("div"); o.className = "overlay";
-        o.innerHTML = `
-          <div class="card" style="max-width:320px; width:90%; text-align:center; padding:24px; animation:pop 0.3s ease-out;">
-            <div style="font-size:11px;letter-spacing:6px;color:#888;margin-bottom:8px;">🏆 成就解锁</div>
-            <div style="font-size:54px;margin-bottom:8px;">${a.icon}</div>
-            <h3 style="margin:0 0 8px;color:var(--ink);">${a.name}</h3>
-            <div style="font-size:13px;color:#666;margin-bottom:16px;">${a.desc}</div>
-            <button class="btn" style="width:100%;" id="okBtn">好耶！</button>
-          </div>`;
-        document.body.appendChild(o);
-        o.querySelector("#okBtn").onclick = () => o.remove();
+      async function unlock(id){
+        if(!ACHIEVEMENTS[id] || S.achievements[id]) return;
+        S.achievements[id]=Date.now(); await roche.storage.set("achievements",S.achievements);
+        if(id==="dark_master"||id==="dark_ten"||id==="dark_thirty") darkFlash();
+        const a=ACHIEVEMENTS[id], o=document.createElement("div"); o.className="overlay";
+        o.innerHTML=`<div class="congrats" style="background:linear-gradient(135deg,#fff5c8,#ffd76a,#e89a3c);">
+          <div style="font-size:11px;letter-spacing:6px;opacity:.7;margin-bottom:8px;">🏆 成就解锁</div>
+          <div class="big-emo" style="font-size:54px;margin-bottom:8px;">${a.icon}</div>
+          <h3 style="margin:0 0 8px;color:var(--ink);">${a.name}</h3>
+          <div style="font-size:13px;opacity:.85;margin-bottom:16px;">${a.desc}</div>
+          <button class="btn" style="width:100%;" id="okBtn">好耶！</button></div>`;
+        document.body.appendChild(o); o.querySelector("#okBtn").onclick=()=>o.remove();
       }
 
       /* ============ 11. 逻辑判定 ============ */
-      function isDarkCombo(picked, spices) {
-        const dark = picked.some(e => DARK_EMOJIS.includes(e));
-        const seaFruit = picked.some(e => ["🍤", "🦑", "🦐", "🦀", "🐟", "🦞"].includes(e)) && picked.some(e => ["🍎", "🍏", "🍓", "🍒", "🍑", "🍰", "🍫", "🍩"].includes(e));
-        const chaos = spices.length >= 4;
-        const sweetSalty = spices.includes("🧂") && spices.includes("🍯") && spices.includes("🌶️");
-        return dark || seaFruit || chaos || sweetSalty;
+      function isDarkCombo(picked, spices){
+        const dark = picked.some(e=>DARK_EMOJIS.includes(e));
+        const seaFruit = picked.some(e=>["🍤","🦑","🦐","🦀","🐟","🦞"].includes(e)) && picked.some(e=>["🍎","🍏","🍓","🍒","🍑","🍰","🍫","🍩"].includes(e));
+        const chaos = spices.length>=4;
+        const sweetSalty = spices.includes("🧂")&&spices.includes("🍯")&&spices.includes("🌶️");
+        return dark||seaFruit||chaos||sweetSalty;
       }
 
-      async function maybeCraving(force) {
-        if (!force && (S.cravingBanner || Math.random() > 0.2)) return;
-        try {
-          const chars = await roche.character.list();
-          if (!chars.length) { if (force) roche.ui.toast("没有 Char"); return; }
-          const c = chars[Math.floor(Math.random() * chars.length)];
-          const res = await roche.ai.chat({ messages: [
-            { role: "system", content: `你扮演「${c.name || c.handle}」。人设：${c.persona || c.bio || ""}\n主动来 user 的厨房讨吃的，写一句短短的讨菜台词（≤30字），不要引号。` },
-            { role: "user", content: "你想吃什么？" }
-          ], temperature: 1.1 });
-          S.cravingBanner = { char: c, text: (res.text || "").trim() || "肚子饿了…做点吃的？" };
-          if (S.tab === "stove") render();
-        } catch { if (force) roche.ui.toast("呼叫失败"); }
+      async function maybeCraving(force){
+        if(!force && (S.cravingBanner || Math.random()>0.2)) return;
+        try{
+          const chars=await roche.character.list();
+          if(!chars.length){ if(force) roche.ui.toast("没有 Char"); return; }
+          const c=chars[Math.floor(Math.random()*chars.length)];
+          const res=await roche.ai.chat({messages:[
+            {role:"system",content:`你扮演「${c.name||c.handle}」。人设：${c.persona||c.bio||""}\n主动来 user 的厨房讨吃的，写一句短短的讨菜台词（≤30字），不要引号。`},
+            {role:"user",content:"你想吃什么？"}
+          ],temperature:1.1});
+          S.cravingBanner={char:c, text:(res.text||"").trim()||"肚子饿了…做点吃的？"};
+          if(S.tab==="stove") render();
+        }catch{ if(force) roche.ui.toast("呼叫失败"); }
       }
 
       /* ============ 12. 主渲染路由 ============ */
-      function render() {
-        applyTheme(); nav(); body.innerHTML = "";
-        ({ stove: renderStove, book: renderBook, feed: renderFeed, custom: renderCustom, set: renderSet })[S.tab](body);
+      function render(){
+        applyTheme(); nav(); body.innerHTML="";
+        ({stove:renderStove, book:renderBook, feed:renderFeed, custom:renderCustom, set:renderSet})[S.tab](body);
       }
 
       /* ---------- 料理台 ---------- */
-      function renderStove(el) {
-        const foodDots = S.picked.map((p) => {
-          const custom = p.startsWith("::") ? S.custom.find(c => c.id === p.slice(2)) : null;
-          let emo = custom ? (custom.image ? `<img src="${custom.image}" style="max-width:32px;max-height:32px;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.3));">` : (custom.emoji || "🖼")) : p;
-          return `<span style="left:${100 + (Math.random() - .5) * 110}px;top:${45 + (Math.random() - .5) * 22}px;">${emo}</span>`;
+      function renderStove(el){
+        const foodDots=S.picked.map((p)=>{
+          const custom=p.startsWith("::")?S.custom.find(c=>c.id===p.slice(2)):null;
+          let emo = custom ? (custom.image ? `<img src="${custom.image}" style="max-width:32px;max-height:32px;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.3));">` : (custom.emoji||"🖼")) : p;
+          return `<span style="left:${100+(Math.random()-.5)*110}px;top:${45+(Math.random()-.5)*22}px;">${emo}</span>`;
         }).join("");
-        
-        const catBlock = (cat, list) => {
-          const open = S.catOpen[cat] !== false;
-          return `
-            <div class="h" data-cat="${cat}"><span>${cat}</span><span class="caret">${open ? "▼" : "▶"}</span></div>
-            ${open ? `<div class="grid">${list.map(e => `<div class="cell ${S.picked.includes(e) ? "on" : ""}" data-e="${e}">${e}</div>`).join("")}</div>` : ""}`;
+        const catBlock=(cat,list)=>{
+          const open=S.catOpen[cat]!==false;
+          return `<div class="h" data-cat="${cat}"><span>${cat}</span><span class="caret">${open?"▼":"▶"}</span></div>
+            ${open?`<div class="grid">${list.map(e=>`<div class="cell ${S.picked.includes(e)?"on":""}" data-e="${e}">${e}</div>`).join("")}</div>`:""}`;
         };
-
+        
         const isColdPrep = S.fire === 0;
         const cookBtnText = isColdPrep ? "🍽 装盘/调配" : "🍳 出锅";
         const canCook = S.picked.length > 0 || S.spices.length > 0;
 
-        el.innerHTML = `
-          ${S.cravingBanner ? `
-            <div class="craving" id="cravBanner">
-              ${S.cravingBanner.char.avatar ? `<img src="${S.cravingBanner.char.avatar}">` : `<div style="width:36px;height:36px;border-radius:50%;background:#ddd;"></div>`}
-              <div>
-                <b>${S.cravingBanner.char.handle || S.cravingBanner.char.name}</b>：${S.cravingBanner.text}
-                <div style="font-size:11px;opacity:.7;">点这里 → 为它下厨</div>
-              </div>
-            </div>` : ""}
+        el.innerHTML=`
+          ${S.cravingBanner?`<div class="craving" id="cravBanner">
+            ${S.cravingBanner.char.avatar?`<img src="${S.cravingBanner.char.avatar}">`:`<div style="width:36px;height:36px;border-radius:50%;background:#ddd;"></div>`}
+            <div><b>${S.cravingBanner.char.handle||S.cravingBanner.char.name}</b>：${S.cravingBanner.text}
+            <div style="font-size:11px;opacity:.7;">点这里 → 为它下厨</div></div></div>`:""}
           <div class="stove-fixed">
             <div class="stove">
               <div class="pan-holder" id="pan">${panSVG(S.pot)}<div class="pan-food">${foodDots}</div></div>
@@ -534,262 +456,113 @@ window.RochePlugin.register({
             </div>
             <div class="fire-ctrl">
               <span>🚫</span><input type="range" min="0" max="4" value="${S.fire}" id="fire"><span>猛🔥</span>
-              <span style="color:#999;font-size:11px;">${["熄火", "小火", "中火", "中大火", "猛火"][S.fire]}</span>
+              <span style="color:#999;font-size:11px;">${["熄火","小火","中火","中大火","猛火"][S.fire]}</span>
             </div>
           </div>
           <div class="h"><span>锅具</span></div>
-          <div class="row">${POTS.map(p => `<div class="chip ${S.pot === p.id ? "on" : ""}" data-pot="${p.id}">${p.name}·${p.tag}</div>`).join("")}</div>
+          <div class="row">${POTS.map(p=>`<div class="chip ${S.pot===p.id?"on":""}" data-pot="${p.id}">${p.name}·${p.tag}</div>`).join("")}</div>
           <div class="h"><span>工具</span></div>
-          <div class="row">${TOOLS.map(t => `<div class="chip ${S.tool === t.id ? "on" : ""}" data-tool="${t.id}">${t.id === "spatula" ? "🥄" : "🍶"} ${t.name}</div>`).join("")}</div>
+          <div class="row">${TOOLS.map(t=>`<div class="chip ${S.tool===t.id?"on":""}" data-tool="${t.id}">${t.id==="spatula"?"🥄":"🍶"} ${t.name}</div>`).join("")}</div>
           <div class="h"><span>调料·台面常用</span></div>
-          <div class="grid">${SPICES_COMMON.map(s => `<div class="cell ${S.spices.includes(s) ? "on" : ""}" data-sp="${s}" title="${SPICE_FX[s]?.name || ""}">${s}</div>`).join("")}</div>
+          <div class="grid">${SPICES_COMMON.map(s=>`<div class="cell ${S.spices.includes(s)?"on":""}" data-sp="${s}" title="${SPICE_FX[s]?.name||""}">${s}</div>`).join("")}</div>
           <div class="cabinet">
-            <div class="h" id="cabHd" style="margin:0;cursor:pointer;"><span>柜子里的稀有调料</span><span class="caret">${S.cabinetOpen ? "▼" : "▶"}</span></div>
-            ${S.cabinetOpen ? `<div class="grid" style="margin-top:6px;">${SPICES_CABINET.map(s => `<div class="cell ${S.spices.includes(s) ? "on" : ""}" data-sp="${s}" title="${SPICE_FX[s]?.name || ""}">${s}</div>`).join("")}</div>` : ""}
+            <div class="h" id="cabHd" style="margin:0;cursor:pointer;"><span>柜子里的稀有调料</span><span class="caret">${S.cabinetOpen?"▼":"▶"}</span></div>
+            ${S.cabinetOpen?`<div class="grid" style="margin-top:6px;">${SPICES_CABINET.map(s=>`<div class="cell ${S.spices.includes(s)?"on":""}" data-sp="${s}" title="${SPICE_FX[s]?.name||""}">${s}</div>`).join("")}</div>`:""}
           </div>
-          ${Object.entries(FRIDGE).map(([c, l]) => catBlock(c, l)).join("")}
-          ${S.custom.length ? `
-            <div class="h" data-cat="自定义"><span>自定义</span><span class="caret">${S.catOpen["自定义"] !== false ? "▼" : "▶"}</span></div>
-            ${S.catOpen["自定义"] !== false ? `<div class="grid">${S.custom.map(c => `<div class="cell ${S.picked.includes("::" + c.id) ? "on" : ""}" data-ce="${c.id}" title="${c.name}">${c.image ? `<img src="${c.image}" style="width:100%;height:100%;border-radius:8px;object-fit:cover;">` : (c.emoji || "🖼")}</div>`).join("")}</div>` : ""}` : ""}
+          ${Object.entries(FRIDGE).map(([c,l])=>catBlock(c,l)).join("")}
+          ${S.custom.length?`<div class="h" data-cat="自定义"><span>自定义</span><span class="caret">${S.catOpen["自定义"]!==false?"▼":"▶"}</span></div>
+            ${S.catOpen["自定义"]!==false?`<div class="grid">${S.custom.map(c=>`<div class="cell ${S.picked.includes("::"+c.id)?"on":""}" data-ce="${c.id}" title="${c.name}">${c.image?`<img src="${c.image}" style="width:100%;height:100%;border-radius:8px;object-fit:cover;">`:(c.emoji||"🖼")}</div>`).join("")}</div>`:""}`:""}
           <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn" id="toss" ${S.picked.length === 0 || S.fire === 0 ? "disabled" : ""}>🥢 颠勺</button>
-            <button class="btn" id="cook" ${!canCook ? "disabled" : ""}>${cookBtnText}</button>
+            <button class="btn" id="toss" ${S.picked.length===0||S.fire===0?"disabled":""}>🥢 颠勺</button>
+            <button class="btn" id="cook" ${!canCook?"disabled":""}>${cookBtnText}</button>
             <button class="btn ghost" id="clr">清空</button>
           </div>`;
-          
-        const $ = (s) => el.querySelector(s);
-        
-        $("#fire").oninput = (e) => { 
-          S.fire = +e.target.value; 
-          $("#flame").innerHTML = flameSVG(S.fire); 
-          el.querySelectorAll(".fire-ctrl span")[2].textContent = ["熄火", "小火", "中火", "中大火", "猛火"][S.fire]; 
-          render(); 
-        };
-        
-        el.querySelectorAll("[data-pot]").forEach(x => x.onclick = () => { S.pot = x.dataset.pot; render(); });
-        el.querySelectorAll("[data-tool]").forEach(x => x.onclick = () => { S.tool = x.dataset.tool; render(); });
-        el.querySelectorAll("[data-cat]").forEach(x => x.onclick = () => { const c = x.dataset.cat; S.catOpen[c] = S.catOpen[c] === false; render(); });
-        
-        el.querySelectorAll("[data-sp]").forEach(x => x.onclick = () => { 
-          const s = x.dataset.sp; 
-          const i = S.spices.indexOf(s); 
-          if (i >= 0) { S.spices.splice(i, 1); render(); } 
-          else { S.spices.push(s); render(); setTimeout(() => playSpiceFx(s), 30); } 
-        });
-        
-        el.querySelectorAll("[data-e]").forEach(x => x.onclick = () => { 
-          const e = x.dataset.e; 
-          const i = S.picked.indexOf(e); 
-          if (i >= 0) S.picked.splice(i, 1); else S.picked.push(e); 
-          render(); 
-        });
-        
-        el.querySelectorAll("[data-ce]").forEach(x => x.onclick = () => { 
-          const k = "::" + x.dataset.ce; 
-          const i = S.picked.indexOf(k); 
-          if (i >= 0) S.picked.splice(i, 1); else S.picked.push(k); 
-          render(); 
-        });
-        
-        $("#cabHd").onclick = async () => { S.cabinetOpen = !S.cabinetOpen; if (S.cabinetOpen) await unlock("cabinet_open"); render(); };
-        $("#clr").onclick = () => { S.picked = []; S.spices = []; render(); };
-        
-        $("#toss").onclick = async () => {
-          const p = $("#pan"); p.classList.remove("toss"); void p.offsetWidth; p.classList.add("toss");
-          let n = 0; 
-          const t = setInterval(() => { 
-            container.querySelectorAll(".pan-food span").forEach(s => { 
-              s.style.left = (100 + (Math.random() - .5) * 110) + "px"; 
-              s.style.top = (45 + (Math.random() - .5) * 22) + "px"; 
-            }); 
-            if (++n >= 7) clearInterval(t); 
-          }, 100);
-          S.tossCount = (S.tossCount || 0) + 1; 
-          await roche.storage.set("tossCount", S.tossCount);
-          if (S.tossCount >= 20) await unlock("toss_master"); 
-          if (S.tossCount >= 100) await unlock("toss_hundred");
+        const $=(s)=>el.querySelector(s);
+        $("#fire").oninput=(e)=>{ S.fire=+e.target.value; $("#flame").innerHTML=flameSVG(S.fire); el.querySelectorAll(".fire-ctrl span")[2].textContent=["熄火","小火","中火","中大火","猛火"][S.fire]; render(); };
+        el.querySelectorAll("[data-pot]").forEach(x=>x.onclick=()=>{S.pot=x.dataset.pot;render();});
+        el.querySelectorAll("[data-tool]").forEach(x=>x.onclick=()=>{S.tool=x.dataset.tool;render();});
+        el.querySelectorAll("[data-cat]").forEach(x=>x.onclick=()=>{ const c=x.dataset.cat; S.catOpen[c]=S.catOpen[c]===false; render(); });
+        el.querySelectorAll("[data-sp]").forEach(x=>x.onclick=()=>{ const s=x.dataset.sp; const i=S.spices.indexOf(s); if(i>=0){ S.spices.splice(i,1); render(); } else { S.spices.push(s); render(); setTimeout(()=>playSpiceFx(s),30); } });
+        el.querySelectorAll("[data-e]").forEach(x=>x.onclick=()=>{ const e=x.dataset.e; const i=S.picked.indexOf(e); if(i>=0) S.picked.splice(i,1); else S.picked.push(e); render(); });
+        el.querySelectorAll("[data-ce]").forEach(x=>x.onclick=()=>{ const k="::"+x.dataset.ce; const i=S.picked.indexOf(k); if(i>=0) S.picked.splice(i,1); else S.picked.push(k); render(); });
+        $("#cabHd").onclick=async ()=>{ S.cabinetOpen=!S.cabinetOpen; if(S.cabinetOpen) await unlock("cabinet_open"); render(); };
+        $("#clr").onclick=()=>{ S.picked=[]; S.spices=[]; render(); };
+        $("#toss").onclick=async ()=>{
+          const p=$("#pan"); p.classList.remove("toss"); void p.offsetWidth; p.classList.add("toss");
+          let n=0; const t=setInterval(()=>{ container.querySelectorAll(".pan-food span").forEach(s=>{ s.style.left=(100+(Math.random()-.5)*110)+"px"; s.style.top=(45+(Math.random()-.5)*22)+"px"; }); if(++n>=7) clearInterval(t); },100);
+          S.tossCount=(S.tossCount||0)+1; await roche.storage.set("tossCount",S.tossCount);
+          if(S.tossCount>=20) await unlock("toss_master"); if(S.tossCount>=100) await unlock("toss_hundred");
           roche.ui.toast("锵！颠勺～");
         };
-        
-        $("#cook").onclick = cookDish;
-        const cb = $("#cravBanner"); if (cb) cb.onclick = () => { S.cravingBanner = null; render(); };
+        $("#cook").onclick=cookDish;
+        const cb=$("#cravBanner"); if(cb) cb.onclick=()=>{ S.cravingBanner=null; render(); };
       }
 
       /* ---------- 出锅 / 装盘 ---------- */
-      async function cookDish() {
-        if (!S.picked.length && !S.spices.length) return;
+      async function cookDish(){
+        if(!S.picked.length && !S.spices.length) return;
         const isColdPrep = S.fire === 0;
-        const dark = isDarkCombo(S.picked, S.spices);
-        showLoading(dark ? "锅里发生了不祥的事…" : (isColdPrep ? "精心调配中…" : "炒制中…"));
-        
-        const parts = [], tastes = new Set(), textures = new Set(), vibes = new Set();
-        S.picked.forEach(e => {
-          if (e.startsWith("::")) { 
-            const c = S.custom.find(x => x.id === e.slice(2)); 
-            if (c) parts.push(`${c.name}(${c.desc || ""})`); 
-          } else { 
-            parts.push(e); 
-            const m = EMOJI_META[e]; 
-            if (m) { tastes.add(m.t); textures.add(m.x); vibes.add(m.v); } 
-          }
+        const dark=isDarkCombo(S.picked, S.spices);
+        showLoading(dark?"锅里发生了不祥的事…": (isColdPrep?"精心调配中…":"炒制中…"));
+        const parts=[], tastes=new Set(), textures=new Set(), vibes=new Set();
+        S.picked.forEach(e=>{
+          if(e.startsWith("::")){ const c=S.custom.find(x=>x.id===e.slice(2)); if(c) parts.push(`${c.name}(${c.desc||""})`); }
+          else { parts.push(e); const m=EMOJI_META[e]; if(m){tastes.add(m.t);textures.add(m.x);vibes.add(m.v);} }
         });
-        S.spices.forEach(s => { const m = EMOJI_META[s]; if (m) { tastes.add(m.t); textures.add(m.x); vibes.add(m.v); } });
+        S.spices.forEach(s=>{ const m=EMOJI_META[s]; if(m){tastes.add(m.t);textures.add(m.x);vibes.add(m.v);} });
+        const pot=POTS.find(p=>p.id===S.pot), fireLevel=["熄火","小火","中火","中大火","猛火"][S.fire];
+        const midnightHint=isLateNight?"\n【重要】现在是深夜食堂时间，请带有一种深夜的治愈、静谧、独处感，或者幽暗感。":"";
+        const darkHint=dark?"\n【重要】这是一道黑暗料理，请起一个诡异/中二/克苏鲁风的中文菜名，描述要有邪典恐怖感、卖相怪诞、功效离谱。":"";
         
-        const pot = POTS.find(p => p.id === S.pot);
-        const fireLevel = ["熄火", "小火", "中火", "中大火", "猛火"][S.fire];
-        const midnightHint = isLateNight ? "\n【重要】现在是深夜食堂时间，请带有一种深夜的治愈、静谧、独处感，或者幽暗感。" : "";
-        const darkHint = dark ? "\n【重要】这是一道黑暗料理，请起一个诡异/中二/克苏鲁风的中文菜名，描述要有邪典恐怖感、卖相怪诞、功效离谱。" : "";
-
         const sysPrompt = isColdPrep
           ? `你是会取名的甜点师/调酒师。根据食材和调料，为这道【免火冷调】的甜点/饮品/冷盘起中文名。JSON：{"name":"","desc":"","effect":"","appearance":""}${midnightHint}${darkHint}`
           : `你是会取名的厨师。根据食材、调料、锅具、火候起中文菜名。JSON：{"name":"","desc":"","effect":"","appearance":""}${midnightHint}${darkHint}`;
         const userPrompt = isColdPrep
-          ? `食材：${parts.join("、") || "无"}\n调料：${S.spices.map(s => SPICE_FX[s]?.name || s).join("、") || "无"}\n制作方式：熄火冷调/装盘`
-          : `食材：${parts.join("、") || "无"}\n调料：${S.spices.map(s => SPICE_FX[s]?.name || s).join("、") || "无"}\n锅具：${pot.name}(${pot.tag})\n火候：${fireLevel}\n工具：${S.tool}`;
+          ? `食材：${parts.join("、")||"无"}\n调料：${S.spices.map(s=>SPICE_FX[s]?.name||s).join("、")||"无"}\n制作方式：熄火冷调/装盘`
+          : `食材：${parts.join("、")||"无"}\n调料：${S.spices.map(s=>SPICE_FX[s]?.name||s).join("、")||"无"}\n锅具：${pot.name}(${pot.tag})\n火候：${fireLevel}\n工具：${S.tool}`;
 
-        let dish = { name: "神秘料理", desc: "", effect: "", appearance: "" };
-        try {
-          const res = await roche.ai.chat({ messages: [{ role: "system", content: sysPrompt }, { role: "user", content: userPrompt }], temperature: 0.9 });
-          const m = (res.text || "").match(/\{[\s\S]*\}/); 
-          if (m) Object.assign(dish, JSON.parse(m[0]));
-        } catch {
-          dish.name = (dark ? "☠️" : "") + S.picked.filter(x => !x.startsWith("::")).slice(0, 3).join("") + (isColdPrep ? "冷盘" : pot.tag);
-          dish.desc = `${isColdPrep ? "免火调配" : "用" + pot.name + pot.tag}成的一道${dark ? "诡异" : ""}菜。`;
+        let dish={name:"神秘料理",desc:"",effect:"",appearance:""};
+        try{
+          const res=await roche.ai.chat({messages:[{role:"system",content:sysPrompt},{role:"user",content:userPrompt}],temperature:0.9});
+          const m=(res.text||"").match(/\{[\s\S]*\}/); if(m) Object.assign(dish, JSON.parse(m[0]));
+        }catch{
+          dish.name=(dark?"☠️":"")+S.picked.filter(x=>!x.startsWith("::")).slice(0,3).join("")+(isColdPrep?"冷盘":pot.tag);
+          dish.desc=`${isColdPrep?"免火调配":"用"+pot.name+pot.tag}成的一道${dark?"诡异":""}菜。`;
         }
-        
-        const rec = {
-          id: crypto.randomUUID(), name: dish.name, desc: dish.desc, emojis: [...S.picked], spices: [...S.spices],
-          pot: S.pot, tool: S.tool, fire: S.fire, taste: [...tastes].join("/") || "未知", texture: [...textures].join("/") || "未知", vibe: [...vibes].join("/") || "神秘",
-          effect: dish.effect, appearance: dish.appearance, midnight: isLateNight, dark, createdAt: Date.now(), starred: false
+        const rec={
+          id:crypto.randomUUID(), name:dish.name, desc:dish.desc, emojis:[...S.picked], spices:[...S.spices],
+          pot:S.pot, tool:S.tool, fire:S.fire, taste:[...tastes].join("/")||"未知", texture:[...textures].join("/")||"未知", vibe:[...vibes].join("/")||"神秘",
+          effect:dish.effect, appearance:dish.appearance, midnight:isLateNight, dark, createdAt:Date.now(), starred:false
         };
-        
-        const key = (r) => `${r.name}|${[...r.emojis].sort().join(",")}|${[...(r.spices || [])].sort().join(",")}`;
-        const dupe = S.recipes.find(r => key(r) === key(rec));
-        
-        if (!dupe) {
-          S.recipes.unshift(rec); 
-          await roche.storage.set("recipes", S.recipes);
-          
+        const key=(r)=>`${r.name}|${[...r.emojis].sort().join(",")}|${[...(r.spices||[])].sort().join(",")}`;
+        const dupe=S.recipes.find(r=>key(r)===key(rec));
+        if(!dupe){
+          S.recipes.unshift(rec); await roche.storage.set("recipes",S.recipes);
           const today = new Date().toLocaleDateString();
           if (S.lastCookDate !== today) {
-            if (S.lastCookDate) { 
-              const yesterday = new Date(Date.now() - 86400000).toLocaleDateString(); 
-              if (S.lastCookDate === yesterday) S.consecutiveCookDays++; 
-              else S.consecutiveCookDays = 1; 
-            } else { 
-              S.consecutiveCookDays = 1; 
-            }
-            S.lastCookDate = today; 
-            await roche.storage.set("lastCookDate", S.lastCookDate); 
-            await roche.storage.set("consecutiveCookDays", S.consecutiveCookDays);
+            if (S.lastCookDate) { const yesterday = new Date(Date.now() - 86400000).toLocaleDateString(); if (S.lastCookDate === yesterday) S.consecutiveCookDays++; else S.consecutiveCookDays = 1; } else { S.consecutiveCookDays = 1; }
+            S.lastCookDate = today; await roche.storage.set("lastCookDate", S.lastCookDate); await roche.storage.set("consecutiveCookDays", S.consecutiveCookDays);
           }
           if (S.consecutiveCookDays >= 7) await unlock("seven_days");
-          
-          await unlock("first_cook"); 
-          if (S.recipes.length >= 10) await unlock("ten_dishes"); 
-          if (S.recipes.length >= 30) await unlock("thirty_dishes"); 
-          if (S.recipes.length >= 50) await unlock("fifty_dishes"); 
-          if (S.recipes.length >= 100) await unlock("hundred_dishes");
-          
-          S.potUsed.add(S.pot); await roche.storage.set("potUsed", [...S.potUsed]); 
-          if (S.potUsed.size >= 3) await unlock("pot_all");
-          
-          S.potDishCount[S.pot] = (S.potDishCount[S.pot] || 0) + 1; 
-          await roche.storage.set("potDishCount", S.potDishCount); 
-          if (S.potDishCount.wok >= 10) await unlock("wok_ten"); 
-          if (S.potDishCount.flat >= 10) await unlock("flat_ten"); 
-          if (S.potDishCount.pressure >= 10) await unlock("pressure_ten");
-          
-          S.spices.forEach(s => S.spiceUsed.add(s)); 
-          await roche.storage.set("spiceUsed", [...S.spiceUsed]); 
-          if (S.spiceUsed.size >= 14) await unlock("spice_all"); 
-          if (SPICES_COMMON.every(s => S.spiceUsed.has(s))) await unlock("spice_common_all"); 
-          if (S.spices.length >= 5) await unlock("spice_junkie"); 
-          if (!S.spices.length && S.picked.length) await unlock("no_spice"); 
-          if (S.spices.length && !S.picked.length) await unlock("only_spice");
-          
-          S.picked.forEach(e => { if (!e.startsWith("::")) S.ingredientsUsed.add(e); }); 
-          await roche.storage.set("ingredientsUsed", [...S.ingredientsUsed]); 
-          if (S.ingredientsUsed.size >= 30) await unlock("ingredient_master"); 
-          if (S.picked.length === 1) await unlock("single_ingredient"); 
-          if (S.picked.length >= 10) await unlock("big_dish"); 
-          if (S.picked.some(e => e.startsWith("::"))) await unlock("custom_in_dish");
-          
-          if (S.fire === 4) await unlock("max_fire"); 
-          if (S.fire === 1) await unlock("low_fire");
-          
-          if (rec.midnight) { 
-            S.midnightCount++; await roche.storage.set("midnightCount", S.midnightCount); 
-            await unlock("midnight"); 
-            if (S.midnightCount >= 10) await unlock("midnight_ten"); 
-            if (S.midnightCount >= 30) await unlock("midnight_thirty"); 
-          }
-          if (hour >= 5 && hour < 8) await unlock("early_bird"); 
-          if (hour >= 11 && hour < 13) await unlock("lunch_chef"); 
-          if (hour >= 17 && hour < 19) await unlock("dinner_chef");
-          
-          if (rec.dark) { 
-            S.darkCount++; await roche.storage.set("darkCount", S.darkCount); 
-            await unlock("dark_master"); 
-            if (S.darkCount >= 5) await unlock("dark_five"); 
-            if (S.darkCount >= 10) await unlock("dark_ten"); 
-            if (S.darkCount >= 30) await unlock("dark_thirty"); 
-            if (rec.midnight) await unlock("dark_at_midnight"); 
-          }
-          
-          if (S.picked.includes("💊")) await unlock("pill_chef"); 
-          if (S.picked.includes("🦴")) await unlock("bone_soup"); 
-          if (S.picked.includes("🧀") && S.picked.includes("🍿")) await unlock("cheese_pop"); 
-          if (S.picked.includes("🧫")) await unlock("petri_dish"); 
-          if (S.picked.includes("💊") && S.spices.includes("⚗️") && S.picked.includes("🦴")) await unlock("mystic_trio"); 
-          if (S.picked.some(e => ["🍤", "🦑", "🦐", "🦀", "🐟", "🦞"].includes(e)) && S.picked.some(e => ["🍎", "🍏", "🍓", "🍒", "🍑", "🍰", "🍫", "🍩"].includes(e))) await unlock("seafood_fruit");
-          
-          S.picked.forEach(e => { if (DARK_EMOJIS.includes(e)) S.darkEmojisUsed.add(e); }); 
-          await roche.storage.set("darkEmojisUsed", [...S.darkEmojisUsed]); 
-          if (S.darkEmojisUsed.size >= 6) await unlock("all_dark_emojis");
-          
-          if (S.spices.includes("🥃")) await unlock("flambe_master");
-          
-          if (S.cravingBanner) { 
-            S.cravingAnsCount++; await roche.storage.set("cravingAnsCount", S.cravingAnsCount); 
-            await unlock("craving_ans"); 
-            if (S.cravingAnsCount >= 5) await unlock("craving_five"); 
-            if (S.cravingAnsCount >= 10) await unlock("craving_ten"); 
-          }
+          await unlock("first_cook"); if(S.recipes.length>=10) await unlock("ten_dishes"); if(S.recipes.length>=30) await unlock("thirty_dishes"); if(S.recipes.length>=50) await unlock("fifty_dishes"); if(S.recipes.length>=100) await unlock("hundred_dishes");
+          S.potUsed.add(S.pot); await roche.storage.set("potUsed",[...S.potUsed]); if(S.potUsed.size>=3) await unlock("pot_all");
+          S.potDishCount[S.pot]=(S.potDishCount[S.pot]||0)+1; await roche.storage.set("potDishCount",S.potDishCount); if(S.potDishCount.wok>=10) await unlock("wok_ten"); if(S.potDishCount.flat>=10) await unlock("flat_ten"); if(S.potDishCount.pressure>=10) await unlock("pressure_ten");
+          S.spices.forEach(s=>S.spiceUsed.add(s)); await roche.storage.set("spiceUsed",[...S.spiceUsed]); if(S.spiceUsed.size>=14) await unlock("spice_all"); if(SPICES_COMMON.every(s=>S.spiceUsed.has(s))) await unlock("spice_common_all"); if(S.spices.length>=5) await unlock("spice_junkie"); if(!S.spices.length && S.picked.length) await unlock("no_spice"); if(S.spices.length && !S.picked.length) await unlock("only_spice");
+          S.picked.forEach(e=>{ if(!e.startsWith("::")) S.ingredientsUsed.add(e); }); await roche.storage.set("ingredientsUsed",[...S.ingredientsUsed]); if(S.ingredientsUsed.size>=30) await unlock("ingredient_master"); if(S.picked.length===1) await unlock("single_ingredient"); if(S.picked.length>=10) await unlock("big_dish"); if(S.picked.some(e=>e.startsWith("::"))) await unlock("custom_in_dish");
+          if(S.fire===4) await unlock("max_fire"); if(S.fire===1) await unlock("low_fire");
+          if(rec.midnight){ S.midnightCount++; await roche.storage.set("midnightCount",S.midnightCount); await unlock("midnight"); if(S.midnightCount>=10) await unlock("midnight_ten"); if(S.midnightCount>=30) await unlock("midnight_thirty"); }
+          if(hour>=5 && hour<8) await unlock("early_bird"); if(hour>=11 && hour<13) await unlock("lunch_chef"); if(hour>=17 && hour<19) await unlock("dinner_chef");
+          if(rec.dark){ S.darkCount++; await roche.storage.set("darkCount",S.darkCount); await unlock("dark_master"); if(S.darkCount>=5) await unlock("dark_five"); if(S.darkCount>=10) await unlock("dark_ten"); if(S.darkCount>=30) await unlock("dark_thirty"); if(rec.midnight) await unlock("dark_at_midnight"); }
+          if(S.picked.includes("💊")) await unlock("pill_chef"); if(S.picked.includes("🦴")) await unlock("bone_soup"); if(S.picked.includes("🧀") && S.picked.includes("🍿")) await unlock("cheese_pop"); if(S.picked.includes("🧫")) await unlock("petri_dish"); if(S.picked.includes("💊") && S.spices.includes("⚗️") && S.picked.includes("🦴")) await unlock("mystic_trio"); if(S.picked.some(e=>["🍤","🦑","🦐","🦀","🐟","🦞"].includes(e)) && S.picked.some(e=>["🍎","🍏","🍓","🍒","🍑","🍰","🍫","🍩"].includes(e))) await unlock("seafood_fruit");
+          S.picked.forEach(e=>{ if(DARK_EMOJIS.includes(e)) S.darkEmojisUsed.add(e); }); await roche.storage.set("darkEmojisUsed",[...S.darkEmojisUsed]); if(S.darkEmojisUsed.size>=6) await unlock("all_dark_emojis");
+          if(S.spices.includes("🥃")) await unlock("flambe_master");
+          if(S.cravingBanner){ S.cravingAnsCount++; await roche.storage.set("cravingAnsCount",S.cravingAnsCount); await unlock("craving_ans"); if(S.cravingAnsCount>=5) await unlock("craving_five"); if(S.cravingAnsCount>=10) await unlock("craving_ten"); }
         }
-        
-        hideLoading(); 
-        if (dupe) roche.ui.toast("这道菜之前做过啦，已跳过重复");
-        
-        await new Promise(resolve => {
-          const o = document.createElement("div"); 
-          o.className = "overlay";
-          o.innerHTML = `
-            <div class="card" style="max-width:320px; width:90%; text-align:center; padding:24px; animation:pop 0.3s ease-out; ${dark ? "background:linear-gradient(135deg,#1a1023,#2a1035); color:#e8c8ff; border:1px solid #6a2a8a;" : ""}">
-              <div style="font-size:12px; letter-spacing:4px; opacity:.7; margin-bottom:12px;">${dark ? "☠️ 黑暗料理诞生" : "🎉 恭喜获得"}</div>
-              <div style="font-size:48px; margin-bottom:12px; display:flex; justify-content:center; gap:4px;">${renderEmoList(rec.emojis, 40)}</div>
-              <h3 style="margin:0 0 8px; font-size:20px;">${rec.name}</h3>
-              <div style="font-size:13px; opacity:.85; margin-bottom:16px;">${rec.desc || ""}</div>
-              ${rec.effect ? `<div style="font-size:12px; color:var(--acc); margin-bottom:16px;">✨ ${rec.effect}</div>` : ""}
-              <button class="btn" style="width:100%; ${dark ? "background:#8a3aa8;" : ""}" id="okBtn">收下这道菜</button>
-            </div>`;
-          document.body.appendChild(o); 
-          o.querySelector("#okBtn").onclick = () => { o.remove(); resolve(); };
-        });
-
-        S.picked = []; S.spices = [];
-        if (S.cravingBanner) { 
-          S.pendingDish = rec; 
-          const cravChar = S.cravingBanner.char; 
-          S.cravingBanner = null; 
-          S.tab = "feed"; S.feedTab = "feedChar"; 
-          render(); 
-          setTimeout(() => feedToChar(rec, cravChar), 300); 
-          return; 
-        }
-        S.tab = "book"; render();
+        hideLoading(); if(dupe) roche.ui.toast("这道菜之前做过啦，已跳过重复");
+        await showCongrats(rec, dark); S.picked=[]; S.spices=[];
+        if(S.cravingBanner){ S.pendingDish=rec; const cravChar=S.cravingBanner.char; S.cravingBanner=null; S.tab="feed"; S.feedTab="feedChar"; render(); setTimeout(()=>feedToChar(rec, cravChar), 300); return; }
+        S.tab="book"; render();
       }
-
       /* ---------- 菜谱 ---------- */
       function renderBook(el) {
         const list = S.bookTab === "starred" ? S.recipes.filter(r => r.starred) : S.recipes;
@@ -832,6 +605,7 @@ window.RochePlugin.register({
           else if (a === "star") { r.starred = !r.starred; await roche.storage.set("recipes", S.recipes); render(); }
         });
       }
+
       async function giftToChar(dish) {
         let chars = []; try { chars = await roche.character.list(); } catch {}
         if (!chars.length) { roche.ui.toast("没有 Char"); return; }
@@ -1328,7 +1102,8 @@ window.RochePlugin.register({
 
           <div class="h"><span>💾 数据管理</span></div>
           <div class="row">
-            <button class="btn ghost" id="exportData">📦 导出备份</button>
+            <button class="btn ghost" id="exportData">📦 导出备份文件</button>
+            <button class="btn ghost" id="importData">📥 导入备份文件</button>
           </div>
           <div class="card" style="font-size:13px;line-height:1.8;">
             菜谱：${S.recipes.length} 条（已收藏 ${S.recipes.filter(r => r.starred).length} 条）<br>投喂：${S.feeds.length} 条<br>
@@ -1363,11 +1138,93 @@ window.RochePlugin.register({
         el.querySelector("#callChar").onclick = async () => { S.cravingBanner = null; await maybeCraving(true); S.tab = "stove"; render(); };
         el.querySelector("#achHd").onclick = () => { S.achOpen = !S.achOpen; render(); };
         
+        // 真正的文件导出
         el.querySelector("#exportData").onclick = () => {
-          const data = { recipes: S.recipes, feeds: S.feeds, custom: S.custom, achievements: S.achievements };
-          const str = JSON.stringify(data);
-          navigator.clipboard?.writeText(str);
-          roche.ui.toast("备份数据已复制到剪贴板！");
+          const data = {
+            recipes: S.recipes, feeds: S.feeds, custom: S.custom, achievements: S.achievements,
+            spiceUsed: [...S.spiceUsed], potUsed: [...S.potUsed], ingredientsUsed: [...S.ingredientsUsed],
+            darkEmojisUsed: [...S.darkEmojisUsed], darkCount: S.darkCount, midnightCount: S.midnightCount,
+            cravingAnsCount: S.cravingAnsCount, memoryCount: S.memoryCount, tossCount: S.tossCount,
+            giftCount: S.giftCount, feedPerChar: S.feedPerChar, potDishCount: S.potDishCount,
+            reactionSet: [...S.reactionSet], themesUsed: [...S.themesUsed],
+            lastCookDate: S.lastCookDate, consecutiveCookDays: S.consecutiveCookDays
+          };
+          const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `char-kitchen-backup-${Date.now()}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+          roche.ui.toast("备份文件已下载！");
+        };
+
+        // 真正的文件导入
+        el.querySelector("#importData").onclick = () => {
+          const inp = document.createElement("input");
+          inp.type = "file";
+          inp.accept = ".json";
+          inp.onchange = async () => {
+            const f = inp.files[0];
+            if(!f) return;
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+              try {
+                const data = JSON.parse(e.target.result);
+                if(!data.recipes || !data.custom) throw new Error("无效的备份文件");
+                
+                S.recipes = data.recipes || [];
+                S.feeds = data.feeds || [];
+                S.custom = data.custom || [];
+                S.achievements = data.achievements || {};
+                
+                S.spiceUsed = new Set(data.spiceUsed || []);
+                S.potUsed = new Set(data.potUsed || []);
+                S.ingredientsUsed = new Set(data.ingredientsUsed || []);
+                S.darkEmojisUsed = new Set(data.darkEmojisUsed || []);
+                S.darkCount = data.darkCount || 0;
+                S.midnightCount = data.midnightCount || 0;
+                S.cravingAnsCount = data.cravingAnsCount || 0;
+                S.memoryCount = data.memoryCount || 0;
+                S.tossCount = data.tossCount || 0;
+                S.giftCount = data.giftCount || 0;
+                S.feedPerChar = data.feedPerChar || {};
+                S.potDishCount = data.potDishCount || {wok:0,flat:0,pressure:0};
+                S.reactionSet = new Set(data.reactionSet || []);
+                S.themesUsed = new Set(data.themesUsed || []);
+                S.lastCookDate = data.lastCookDate || "";
+                S.consecutiveCookDays = data.consecutiveCookDays || 0;
+
+                await roche.storage.set("recipes", S.recipes);
+                await roche.storage.set("feedRecords", S.feeds);
+                await roche.storage.set("customIngredients", S.custom);
+                await roche.storage.set("achievements", S.achievements);
+                await roche.storage.set("spiceUsed", [...S.spiceUsed]);
+                await roche.storage.set("potUsed", [...S.potUsed]);
+                await roche.storage.set("ingredientsUsed", [...S.ingredientsUsed]);
+                await roche.storage.set("darkEmojisUsed", [...S.darkEmojisUsed]);
+                await roche.storage.set("darkCount", S.darkCount);
+                await roche.storage.set("midnightCount", S.midnightCount);
+                await roche.storage.set("cravingAnsCount", S.cravingAnsCount);
+                await roche.storage.set("memoryCount", S.memoryCount);
+                await roche.storage.set("tossCount", S.tossCount);
+                await roche.storage.set("giftCount", S.giftCount);
+                await roche.storage.set("feedPerChar", S.feedPerChar);
+                await roche.storage.set("potDishCount", S.potDishCount);
+                await roche.storage.set("reactionSet", [...S.reactionSet]);
+                await roche.storage.set("themesUsed", [...S.themesUsed]);
+                await roche.storage.set("lastCookDate", S.lastCookDate);
+                await roche.storage.set("consecutiveCookDays", S.consecutiveCookDays);
+
+                roche.ui.toast("导入成功！");
+                render();
+              } catch(err) {
+                roche.ui.toast("导入失败，文件格式不正确");
+              }
+            };
+            reader.readAsText(f);
+          };
+          inp.click();
         };
 
         el.querySelector("#clrRec").onclick = async () => {

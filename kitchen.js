@@ -1,7 +1,7 @@
 window.RochePlugin.register({
   id: "char-kitchen",
   name: "给 Char 炒菜的厨房",
-  version: "5.1.0",
+  version: "5.2.0",
   apps: [{
     id: "char-kitchen-home",
     name: "Char 的厨房",
@@ -510,7 +510,7 @@ window.RochePlugin.register({
           if (!chars.length) { if (force) roche.ui.toast("没有 Char"); return; }
           const c = chars[Math.floor(Math.random() * chars.length)];
           const res = await roche.ai.chat({ messages: [
-            { role: "system", content: `你扮演「${c.name || c.handle}」。人设：${c.persona || c.bio || ""}\n主动来 user 的厨房讨吃的，写一句短短的讨菜台词（≤30字），不要引号。` },
+            { role: "system", content: `你扮演「${c.name || c.handle}」。人设：${c.persona || c.bio || ""}\n主动来对方的厨房讨吃的，写一句短短的讨菜台词（≤30字），不要引号。【重要】台词中请用“你”称呼对方，绝对不要说出“user”这个词！` },
             { role: "user", content: "你想吃什么？" }
           ], temperature: 1.1 });
           S.cravingBanner = { char: c, text: (res.text || "").trim() || "肚子饿了…做点吃的？" };
@@ -961,7 +961,7 @@ window.RochePlugin.register({
           dish = { name: "特制料理", desc: "不知道加了什么，但看起来是为你准备的。", emojis: [bubbleEmoji, "✨"], effect: "充满心意", taste: "未知", texture: "未知", vibe: "惊喜" };
           try {
             const res = await roche.ai.chat({ messages: [
-              { role: "system", content: `你扮演「${char.name || char.handle}」。人设：${char.persona || char.bio || ""}\n请为你喜欢的人(user)自创一道料理。JSON格式：{"name":"菜名","desc":"描述","effect":"功效或特殊之处","emojis":["🍲","✨"]}` }
+              { role: "system", content: `你扮演「${char.name || char.handle}」。人设：${char.persona || char.bio || ""}\n请为你喜欢的人(对方)自创一道料理。JSON格式：{"name":"菜名","desc":"描述","effect":"功效或特殊之处","emojis":["🍲","✨"],"taste":"味道","texture":"口感","vibe":"氛围"}` }
             ], temperature: 0.9 });
             const m = (res.text || "").match(/\{[\s\S]*\}/);
             if (m) {
@@ -984,10 +984,9 @@ window.RochePlugin.register({
             ${char.avatar ? `<img src="${char.avatar}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.2);margin-bottom:16px;">` : `<div style="width:80px;height:80px;border-radius:50%;background:var(--acc);margin-bottom:16px;"></div>`}
             <h2 style="margin:0 0 8px; font-size:20px; color:var(--ink);">${char.handle || char.name} 带着食物来了！</h2>
             <div style="background:var(--card); border:1px solid var(--acc); border-radius:16px; padding:20px; width:100%; max-width:300px; margin-bottom:24px; box-shadow:0 4px 16px rgba(0,0,0,0.05);">
-              <div style="font-size:36px; margin-bottom:12px;">${renderEmoList(dish.emojis, 36)}</div>
+              <div style="font-size:36px; margin-bottom:12px; display:flex; justify-content:center; gap:4px;">${renderEmoList(dish.emojis, 36)}</div>
               <div style="font-size:18px; font-weight:bold; color:var(--ink); margin-bottom:8px;">【${dish.name}】</div>
               <div style="font-size:14px; color:var(--ink); opacity:0.8; margin-bottom:8px;">${dish.desc}</div>
-              ${dish.effect ? `<div style="font-size:12px; color:var(--acc); background:var(--bg); padding:4px 8px; border-radius:8px; display:inline-block;">✨ ${dish.effect}</div>` : ''}
             </div>
             <div style="display:flex; gap:12px; width:100%; max-width:300px;">
               <button class="btn ghost" id="btnRefuseFeed" style="flex:1;">婉拒</button>
@@ -998,11 +997,32 @@ window.RochePlugin.register({
         `;
 
         const startChat = async (action) => {
+          // 弹出菜品详细属性卡片
+          await new Promise(resolve => {
+            const o = document.createElement("div"); o.className = "overlay";
+            o.innerHTML = `
+              <div class="congrats" style="max-width:320px; width:90%; text-align:center; padding:24px; background:var(--card); color:var(--ink); border-radius:20px; box-shadow:0 10px 40px rgba(0,0,0,0.2);">
+                <div style="font-size:12px; color:#888; margin-bottom:12px;">你${action}，并了解了这道菜：</div>
+                <div style="font-size:48px; margin-bottom:12px; display:flex; justify-content:center; gap:4px;">${renderEmoList(dish.emojis, 40)}</div>
+                <h3 style="margin:0 0 8px; font-size:20px;">${dish.name}</h3>
+                <div style="font-size:13px; opacity:.85; margin-bottom:12px;">${dish.desc}</div>
+                <div style="margin-bottom:12px;">
+                  <span class="tag">味 ${dish.taste||"未知"}</span>
+                  <span class="tag">感 ${dish.texture||"未知"}</span>
+                  <span class="tag">氛 ${dish.vibe||"未知"}</span>
+                </div>
+                ${dish.effect ? `<div style="font-size:12px; color:var(--acc); margin-bottom:16px;">✨ ${dish.effect}</div>` : ''}
+                <button class="btn" style="width:100%;" id="continueBtn">进入聊天</button>
+              </div>`;
+            root.appendChild(o);
+            o.querySelector("#continueBtn").onclick = () => { o.remove(); resolve(); };
+          });
+
           showLoading(`${char.handle || char.name} 正在向你走来…`);
           let firstMsg = `（端着【${dish.name}】走到你面前，眼神有些期待）尝尝看？`;
           try {
             const res = await roche.ai.chat({ messages: [
-              { role: "system", content: `你扮演「${char.name || char.handle}」。人设：${char.persona || char.bio || ""}\n你端着你亲手准备的料理「${dish.name}」(${dish.desc}) 来找 user，user 的反应是：【${action}】。\n【重要】如果 user 婉拒了，你绝对不能假装 user 吃了，必须表现出失落、傲娇或询问原因。\n请带上动作描写，说第一句话。字数50字以内，不要输出引号。` }
+              { role: "system", content: `你扮演「${char.name || char.handle}」。人设：${char.persona || char.bio || ""}\n你端着你准备的料理「${dish.name}」(${dish.desc}) 来找对方，对方的反应是：【${action}】。\n【重要】如果对方婉拒了，你绝对不能假装对方吃了，必须表现出失落、傲娇或询问原因。\n请带上动作描写，说第一句话。字数50字以内。不要输出引号。\n【重要】在台词中请用“你”称呼对方，绝对不要说出“user”这个词！` }
             ], temperature: 0.9 });
             if (res.text) firstMsg = res.text.trim();
           } catch (e) { console.error("生成开场白失败", e); }
@@ -1059,7 +1079,7 @@ window.RochePlugin.register({
         try {
           const { char, dish, userAction } = S.chatWith;
           const res = await roche.ai.chat({ messages: [
-            { role: "system", content: `你扮演「${char.name || char.handle}」。人设：${char.persona || char.bio || ""}\n你给 user 端来了「${dish.name}」(${dish.desc})，user 一开始 ${userAction}。请根据 user 的回复继续自然聊天，带上动作描写。` },
+            { role: "system", content: `你扮演「${char.name || char.handle}」。人设：${char.persona || char.bio || ""}\n你给对方端来了「${dish.name}」(${dish.desc})，对方一开始 ${userAction}。请根据对方的回复继续自然聊天，带上动作描写。\n【重要】在台词中请用“你”称呼对方，绝对不要说出“user”这个词！` },
             ...S.chatLog.map(m => ({ role: m.role, content: m.text }))
           ], temperature: 0.9 });
           S.chatLog.push({ role: "assistant", text: res.text || "..." });
@@ -1075,10 +1095,10 @@ window.RochePlugin.register({
         const wantSum = await roche.ui.confirm({ title: "总结记忆？", message: "要把这次被投喂的经历总结成一段记忆吗？" });
         if (wantSum) {
           showLoading("正在总结记忆…");
-          let text = `Char给user做菜：${char.handle || char.name} 给 user 做了「${dish.name}」。`;
+          let text = `Char给对方做菜：${char.handle || char.name} 做了「${dish.name}」，对方 ${userAction}。`;
           try {
             const sum = await roche.ai.chat({ messages: [
-              { role: "system", content: "提取出菜的名字、总结大概功能口味、总结 user 到底吃没吃、总结大概剧情即可。提醒这是 Char 端给 user 的菜。字数≤100字。" },
+              { role: "system", content: "提取出菜的名字、总结大概功能口味、总结对方到底吃没吃、总结大概剧情即可。提醒这是 Char 端给对方的菜。字数≤100字。" },
               { role: "user", content: `菜：${dish.name}\n初始反应：${userAction}\n对话：\n${S.chatLog.map(m => `${m.role}:${m.text}`).join("\n")}` }
             ] });
             text = (sum.text || "").trim() || text;
@@ -1104,7 +1124,7 @@ window.RochePlugin.register({
         let payload = { eaten: "吃了", mood: "平静", inner: "…", feeling: "这是一道菜。", spoken: "谢谢你。" };
         try {
           const res = await roche.ai.chat({ messages: [
-            { role: "system", content: `你扮演角色「${char.name || char.handle}」。人设：${char.persona || char.bio || ""}\nuser 亲手为你制作了一道${dish.dark ? "看起来非常诡异的黑暗" : ""}料理，端给了你。请严格输出 JSON：{"eaten":"","mood":"","inner":"","feeling":"","spoken":""}\n- eaten：吃没吃（例：吃了/婉拒/打翻/吐了）\n- mood：心情\n- inner：内心真实想法\n- feeling：对菜品的真实评价/感受\n- spoken：你对 user 说出口的第一句话（带动作）\n【重要】记住这是 user 亲手做的。如果有特殊效果，请在 inner 或 feeling 中体现。` },
+            { role: "system", content: `你扮演角色「${char.name || char.handle}」。人设：${char.persona || char.bio || ""}\n对方亲手为你制作了一道${dish.dark ? "看起来非常诡异的黑暗" : ""}料理，端给了你。请严格输出 JSON：{"eaten":"","mood":"","inner":"","feeling":"","spoken":""}\n- eaten：吃没吃（例：吃了/婉拒/打翻/吐了）\n- mood：心情\n- inner：内心真实想法\n- feeling：对菜品的真实评价/感受\n- spoken：你对对方说出口的第一句话（带动作）\n【重要】记住这是对方亲手做的。如果有特殊效果，请在 inner 或 feeling 中体现。在 spoken 中请用“你”称呼对方，绝对不要出现“user”这个词！` },
             { role: "user", content: `菜名：${dish.name}${dish.dark ? "(⚠️ 黑暗料理)" : ""}\n${dish.desc || ""}\n味:${dish.taste} 感:${dish.texture} 氛:${dish.vibe}\n特殊效果：${dish.effect || "无"}` }
           ], temperature: 1.0 });
           const m = (res.text || "").match(/\{[\s\S]*\}/);
@@ -1181,7 +1201,7 @@ window.RochePlugin.register({
         try {
           const { char, dish } = S.chatWith;
           const res = await roche.ai.chat({ messages: [
-            { role: "system", content: `你扮演「${char.name || char.handle}」。人设：${char.persona || char.bio || ""}\n刚才你吃了 user 亲手为你制作的「${dish.name}」${dish.dark ? "（一道黑暗料理）" : ""}，它的特殊效果是：${dish.effect || "无"}。请继续和 user 聊天，保持角色语气，记住这是 user 亲手为你做的。` },
+            { role: "system", content: `你扮演「${char.name || char.handle}」。人设：${char.persona || char.bio || ""}\n刚才你吃了对方亲手为你制作的「${dish.name}」${dish.dark ? "（一道黑暗料理）" : ""}，它的特殊效果是：${dish.effect || "无"}。请继续和对方聊天，保持角色语气，记住这是对方亲手为你做的。\n【重要】在台词中请用“你”称呼对方，绝对不要说出“user”这个词！` },
             ...S.chatLog.map(m => ({ role: m.role, content: m.text }))
           ], temperature: 0.9 });
           S.chatLog.push({ role: "assistant", text: res.text || "..." });
@@ -1200,8 +1220,8 @@ window.RochePlugin.register({
           try {
             const { char, dish, userAction } = S.chatWith;
             let sysMsg = isPure
-              ? `你扮演「${char.name || char.handle}」。人设：${char.persona || char.bio || ""}\n你给 user 端来了「${dish.name}」，user ${userAction}。请继续自然聊天。`
-              : `你扮演「${char.name || char.handle}」。人设：${char.persona || char.bio || ""}\n刚才你吃了 user 亲手为你制作的「${dish.name}」${dish.dark ? "（一道黑暗料理）" : ""}，它的特殊效果是：${dish.effect || "无"}。请继续和 user 聊天，保持角色语气，记住这是 user 亲手为你做的。`;
+              ? `你扮演「${char.name || char.handle}」。人设：${char.persona || char.bio || ""}\n你给对方端来了「${dish.name}」，对方 ${userAction}。请继续自然聊天。\n【重要】在台词中请用“你”称呼对方，绝对不要说出“user”这个词！`
+              : `你扮演「${char.name || char.handle}」。人设：${char.persona || char.bio || ""}\n刚才你吃了对方亲手为你制作的「${dish.name}」${dish.dark ? "（一道黑暗料理）" : ""}，它的特殊效果是：${dish.effect || "无"}。请继续和对方聊天，保持角色语气，记住这是对方亲手为你做的。\n【重要】在台词中请用“你”称呼对方，绝对不要说出“user”这个词！`;
 
             const res = await roche.ai.chat({ messages: [
               { role: "system", content: sysMsg },
@@ -1224,7 +1244,7 @@ window.RochePlugin.register({
         let finalWords = "（Ta 抬眼看了看你，没说话。）";
         try {
           const res = await roche.ai.chat({ messages: [
-            { role: "system", content: `你扮演「${char.name || char.handle}」。人设：${char.persona || char.bio || ""}\n你刚吃了 user 亲手为你做的「${dish.name}」并聊了一会儿。现在 user 要结束投喂了，请用角色语气写一段"结束感想"（2-3 句）。不要引号。` },
+            { role: "system", content: `你扮演「${char.name || char.handle}」。人设：${char.persona || char.bio || ""}\n你刚吃了对方亲手为你做的「${dish.name}」并聊了一会儿。现在对方要结束投喂了，请用角色语气写一段"结束感想"（2-3 句）。不要引号。\n【重要】在台词中请用“你”称呼对方，绝对不要说出“user”这个词！` },
             { role: "user", content: S.chatLog.map(m => `${m.role}:${m.text}`).join("\n") }
           ], temperature: 0.9 });
           finalWords = (res.text || "").trim() || finalWords;
@@ -1376,7 +1396,6 @@ window.RochePlugin.register({
         el.querySelector("#callChar").onclick = async () => { S.cravingBanner = null; await maybeCraving(true); S.tab = "stove"; render(); };
         el.querySelector("#achHd").onclick = () => { S.achOpen = !S.achOpen; render(); };
         
-        // 真正的文件导出
         el.querySelector("#exportData").onclick = () => {
           const data = {
             recipes: S.recipes, feeds: S.feeds, custom: S.custom, achievements: S.achievements,
@@ -1397,7 +1416,6 @@ window.RochePlugin.register({
           roche.ui.toast("备份文件已下载！");
         };
 
-        // 真正的文件导入
         el.querySelector("#importData").onclick = () => {
           const inp = document.createElement("input");
           inp.type = "file";

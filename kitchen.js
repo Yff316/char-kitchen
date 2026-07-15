@@ -1,7 +1,7 @@
 window.RochePlugin.register({
 id:"char-kitchen",
 name:"给 Char 炒菜的厨房",
-version:"4.7.2",
+version:"4.8.0",
 apps:[{
 id:"char-kitchen-home",
 name:"Char 的厨房",
@@ -250,9 +250,9 @@ style.textContent=`
 .tab-bar{display:flex;background:var(--card);border-radius:12px;padding:4px;margin-bottom:12px;}
 .tab-bar button{flex:1;padding:8px;border:none;background:transparent;border-radius:8px;font-weight:700;color:#888;cursor:pointer;transition:0.2s;}
 .tab-bar button.on{background:var(--acc);color:#fff;}
-@keyframes floatUp { 0% { transform: translateY(100vh) scale(0.5); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-100px) scale(1.2); opacity: 0; } }
-.feed-bubble { position:absolute; font-size:46px; padding:10px; animation: floatUp linear infinite; cursor:pointer; user-select:none; z-index:10; filter:drop-shadow(0 4px 8px rgba(0,0,0,.2)); transition:transform 0.15s;}
-.feed-bubble:hover { transform:scale(1.1); animation-play-state:paused; }
+@keyframes slowFloatUp { 0% { transform: translateY(100vh) scale(0.8) rotate(-10deg); opacity: 0; } 10% { opacity: 1; transform: translateY(80vh) scale(1) rotate(5deg); } 90% { opacity: 1; } 100% { transform: translateY(-20vh) scale(1.1) rotate(-5deg); opacity: 0; } }
+.feed-bubble { position:absolute; font-size:48px; padding:20px; animation: slowFloatUp linear forwards; cursor:pointer; user-select:none; z-index:10; filter:drop-shadow(0 4px 12px rgba(0,0,0,.3)); transition:transform 0.2s;}
+.feed-bubble:hover { transform:scale(1.2) !important; z-index:100; }
 .feed-bubble:active { transform:scale(0.9) !important; }
 .typing-dots { display:inline-flex; gap:4px; align-items:center; height:18px; padding:0 4px; }
 .typing-dots span { width:6px; height:6px; background:currentColor; border-radius:50%; animation:bounce 1.4s infinite ease-in-out both; opacity:0.6; }
@@ -382,6 +382,18 @@ function darkFlash(){
 }
 async function showErrorDialog(actionName) {
   return await roche.ui.confirm({ title: "生成失败", message: `${actionName}时发生错误。AI 可能开小差了，要重试吗？\n(取消则返回上一页)` });
+}
+
+/* ============ 成就 ============ */
+async function unlock(id){
+  if(!ACHIEVEMENTS[id] || S.achievements[id]) return;
+  S.achievements[id]=Date.now(); await roche.storage.set("achievements",S.achievements);
+  if(id==="dark_master"||id==="dark_ten"||id==="dark_thirty") darkFlash();
+  const a=ACHIEVEMENTS[id], o=document.createElement("div"); o.className="overlay";
+  o.innerHTML=`<div class="congrats" style="background:linear-gradient(135deg,#fff5c8,#ffd76a,#e89a3c);">
+    <div style="font-size:11px;letter-spacing:6px;opacity:.7;">🏆 成就解锁</div><div class="big-emo" style="font-size:54px;">${a.icon}</div>
+    <h3>${a.name}</h3><div style="font-size:13px;opacity:.85;">${a.desc}</div><button class="btn" style="margin-top:14px;" id="okBtn">好耶！</button></div>`;
+  document.body.appendChild(o); o.querySelector("#okBtn").onclick=()=>o.remove();
 }
 
 /* ============ 黑暗料理判定 ============ */
@@ -652,98 +664,6 @@ function renderBeFed(el){
     <div style="text-align:center;color:#888;padding:40px 20px;line-height:1.6;">
       这里是「被投喂」区。<br>Char 随时可能端着食物来找你。<br>点击飘浮的泡泡看看是谁带了什么好吃的！
     </div>
-    <div id="bubbleContainer" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;"></div>
-  `;
-  const container = el.querySelector("#bubbleContainer");
-  const timer = setInterval(()=>{
-    if(!document.getElementById("bubbleContainer")) { clearInterval(timer); return; }
-    if(Math.random()>0.4) return;
-    const b = document.createElement("div");
-    b.className = "feed-bubble";
-    b.textContent = BUBBLE_EMOJIS[Math.floor(Math.random()*BUBBLE_EMOJIS.length)];
-    b.style.left = (10 + Math.random()*70) + "%";
-    b.style.pointerEvents = "auto";
-    b.style.animationDuration = (5 + Math.random()*4) + "s";
-    b.onclick = () => handleBubbleClick(b);
-    container.appendChild(b);
-    setTimeout(()=>b.remove(), 9000);
-  }, 1800);
-  el._bubbleTimer = timer;
-}
-
-async function handleBubbleClick(bubbleEl){
-  bubbleEl.remove();
-  let chars=[]; try{ chars=await roche.character.list(); }catch{}
-  if(!chars.length){ roche.ui.toast("没有 Char 可以投喂你"); return; }
-  const char = chars[Math.floor(Math.random()*chars.length)];
-  
-  let dish;
-  if(S.recipes.length > 0 && Math.random() > 0.3){
-    dish = S.recipes[Math.floor(Math.random()*S.recipes.length)];
-  } else {
-    dish = { name: "Char的特制料理", desc: "不知道加了什么，但看起来是为你准备的。", emojis: [bubbleEl.textContent, "✨"], effect: "充满心意", taste:"未知", texture:"未知", vibe:"惊喜" };
-    try{
-      const res=await roche.ai.chat({messages:[
-        {role:"system",content:`你扮演「${char.name||char.handle}」。根据人设，为你喜欢的人(user)自创一道料理。JSON：{"name":"菜名","desc":"描述","effect":"功效或特殊之处"}`},
-        {role:"user",content:"做一道菜给我吧。"}
-      ]});
-      const m=(res.text||"").match(/\{[\s\S]*\}/); if(m) Object.assign(dish, JSON.parse(m[0]));
-    }catch{}
-  }
-
-  const choice = await new Promise(resolve=>{
-    const o=document.createElement("div"); o.className="overlay";
-    o.innerHTML=`<div class="congrats" style="background:linear-gradient(135deg, #fffcf0, #ffe8b5); color:#5a3a10; text-align:center; padding:24px; border-radius:20px; max-width:300px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
-      <div style="font-size:12px;color:#888;margin-bottom:10px;">${char.handle||char.name} 端来了一道菜</div>
-      <div style="font-size:48px;margin:10px 0;">${renderEmoList(dish.emojis, 40)}</div>
-      <h3 style="margin:4px 0;">${dish.name}</h3>
-      <div style="font-size:13px;color:#666;margin-bottom:16px;">${dish.desc}</div>
-      ${dish.effect?`<div style="font-size:12px;color:var(--acc);margin-bottom:16px;">✨ ${dish.effect}</div>`:""}
-      <div style="display:flex;gap:10px;justify-content:center;">
-        <button class="btn ghost" id="rejBtn" style="border-color:#ccc;color:#888;">婉拒</button>
-        <button class="btn" id="eatBtn">吃掉！</button>
-      </div>
-    </div>`;
-    document.body.appendChild(o);
-    o.querySelector("#rejBtn").onclick=()=>{ o.remove(); resolve("婉拒了"); };
-    o.querySelector("#eatBtn").onclick=()=>{ o.remove(); resolve("吃掉了"); };
-  });
-
-  S.chatWith = { char, dish, isPureChat:true, userAction: choice };
-  S.chatLog = [];
-  S.tab = "feed";
-  render();
-  generateInitialBeFedResponse(char, dish, choice);
-}
-
-/* ---------- 被投喂模式 ---------- */
-function renderBeFed(el){
-  // 注入气泡动画（如果之前没有的话）
-  if(!document.getElementById("bubble-style")){
-    const style = document.createElement("style");
-    style.id = "bubble-style";
-    style.innerHTML = `
-      @keyframes slowFloatUp {
-        0% { transform: translateY(100vh) scale(0.8) rotate(-10deg); opacity: 0; }
-        10% { opacity: 1; transform: translateY(80vh) scale(1) rotate(5deg); }
-        90% { opacity: 1; }
-        100% { transform: translateY(-20vh) scale(1.1) rotate(-5deg); opacity: 0; }
-      }
-      .feed-bubble:hover { transform: scale(1.2) !important; z-index: 100; }
-    `;
-    document.head.appendChild(style);
-  }
-
-  // 如果正在等待确认是否吃
-  if(S.pendingFeed) {
-    renderPendingFeed(el);
-    return;
-  }
-
-  el.innerHTML=`
-    <div style="text-align:center;color:#888;padding:40px 20px;line-height:1.6;position:relative;z-index:2;">
-      这里是「被投喂」区。<br>Char 随时可能端着食物来找你。<br>点击飘浮的泡泡看看是谁带了什么好吃的！
-    </div>
     <div id="bubbleContainer" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:10;"></div>
   `;
   const container = el.querySelector("#bubbleContainer");
@@ -753,18 +673,11 @@ function renderBeFed(el){
     const b = document.createElement("div");
     b.className = "feed-bubble";
     b.textContent = BUBBLE_EMOJIS[Math.floor(Math.random()*BUBBLE_EMOJIS.length)];
-    // 优化气泡：变大、变慢、增加 padding 扩大点击热区
     b.style.cssText = `
-      position: absolute;
-      left: ${10 + Math.random()*70}%;
-      font-size: 48px; /* 字体变大 */
-      padding: 20px; /* 增加点击热区 */
-      cursor: pointer;
-      pointer-events: auto;
-      transition: transform 0.2s;
-      animation: slowFloatUp ${10 + Math.random()*6}s linear forwards; /* 动画变慢，10-16秒 */
-      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
-      user-select: none;
+      position: absolute; left: ${10 + Math.random()*70}%;
+      font-size: 48px; padding: 20px; cursor: pointer; pointer-events: auto;
+      animation: slowFloatUp ${10 + Math.random()*6}s linear forwards;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3)); user-select: none;
     `;
     b.onclick = () => handleBubbleClick(b);
     container.appendChild(b);
@@ -783,7 +696,6 @@ async function handleBubbleClick(bubbleEl){
   showLoading(`正在看看 ${char.handle||char.name} 带了什么…`);
 
   let dish;
-  // 50% 概率从已有菜谱选，50% 概率 AI 新生成
   if(S.recipes.length > 0 && Math.random() > 0.5){
     dish = S.recipes[Math.floor(Math.random()*S.recipes.length)];
   } else {
@@ -798,66 +710,59 @@ async function handleBubbleClick(bubbleEl){
         Object.assign(dish, parsed);
         if(!Array.isArray(dish.emojis)) dish.emojis = [bubbleEmoji, "✨"];
       }
-    }catch(e){ console.error("生成菜品失败", e); }
+    }catch(e){}
   }
-
   hideLoading();
-  // 设置待确认状态并重新渲染
-  S.pendingFeed = { char, dish };
+
+  const choice = await new Promise(resolve => {
+    const o = document.createElement("div"); o.className = "overlay";
+    o.innerHTML = `
+      <div class="congrats" style="background:var(--card);color:var(--ink);text-align:center;padding:24px;border-radius:20px;max-width:300px;box-shadow:0 10px 40px rgba(0,0,0,0.2);">
+        <div style="font-size:12px;color:#888;margin-bottom:10px;">${char.handle||char.name} 端来了一道菜</div>
+        <div style="font-size:48px;margin:10px 0;display:flex;justify-content:center;gap:4px;">${renderEmoList(dish.emojis, 40)}</div>
+        <h3 style="margin:4px 0;">${dish.name}</h3>
+        <div style="font-size:13px;color:#666;margin-bottom:16px;">${dish.desc}</div>
+        ${dish.effect ? `<div style="font-size:12px;color:var(--acc);margin-bottom:16px;">✨ ${dish.effect}</div>` : ''}
+        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+          <button class="btn ghost" id="btnRej" style="border-color:#ccc;color:#888;padding:8px 12px;">婉拒</button>
+          <button class="btn ghost" id="btnTaste" style="padding:8px 12px;">尝一口</button>
+          <button class="btn" id="btnEat" style="padding:8px 12px;">吃掉！</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(o);
+    o.querySelector("#btnRej").onclick=()=>{ o.remove(); resolve("婉拒了"); };
+    o.querySelector("#btnTaste").onclick=()=>{ o.remove(); resolve("尝了一口"); };
+    o.querySelector("#btnEat").onclick=()=>{ o.remove(); resolve("吃掉了"); };
+    o.onclick=(e)=>{ if(e.target===o){ o.remove(); resolve(null); } };
+  });
+
+  if(!choice) return;
+
+  showLoading(`${char.handle||char.name} 正在向你走来…`);
+  let firstMsg = `（端着【${dish.name}】走到你面前，眼神有些期待）尝尝看？`;
+  try {
+    const res = await roche.ai.chat({messages:[
+      {role:"system",content:`你扮演「${char.name||char.handle}」。人设：${char.persona||char.bio||""}\n你端着你亲手准备的料理「${dish.name}」(${dish.desc}) 来找 user，user ${choice}。请带上动作描写，说第一句话。字数50字以内，不要输出引号。`}
+    ], temperature:0.9});
+    if(res.text) firstMsg = res.text.trim();
+  } catch(e) {}
+  hideLoading();
+
+  S.chatWith = { char, dish, isPureChat:true, userAction: choice };
+  S.chatLog = [{role:"assistant", text:firstMsg}];
+  S.tab = "feed";
   render();
 }
 
-function renderPendingFeed(el) {
-  const { char, dish } = S.pendingFeed;
-  el.innerHTML = `
-    <div style="padding:20px; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; text-align:center; animation: fadeIn 0.4s;">
-      ${char.avatar ? `<img src="${char.avatar}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.2);margin-bottom:16px;">` : `<div style="width:80px;height:80px;border-radius:50%;background:var(--acc);margin-bottom:16px;"></div>`}
-      <h2 style="margin:0 0 8px; font-size:20px; color:var(--ink);">${char.handle||char.name} 带着食物来了！</h2>
-      <div style="background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; width:100%; max-width:300px; margin-bottom:24px; box-shadow:0 4px 16px rgba(0,0,0,0.05);">
-        <div style="font-size:36px; margin-bottom:12px;">${renderEmoList(dish.emojis, 36)}</div>
-        <div style="font-size:18px; font-weight:bold; color:var(--ink); margin-bottom:8px;">【${dish.name}】</div>
-        <div style="font-size:14px; color:var(--ink); opacity:0.8; margin-bottom:8px;">${dish.desc}</div>
-        ${dish.effect ? `<div style="font-size:12px; color:var(--acc); background:var(--bg); padding:4px 8px; border-radius:8px; display:inline-block;">✨ ${dish.effect}</div>` : ''}
-      </div>
-      <div style="display:flex; gap:12px; width:100%; max-width:300px;">
-        <button class="btn ghost" id="btnRefuseFeed" style="flex:1;">婉拒</button>
-        <button class="btn" id="btnAcceptFeed" style="flex:1;">接受投喂</button>
-      </div>
-    </div>
-  `;
-
-  el.querySelector("#btnRefuseFeed").onclick = () => {
-    S.pendingFeed = null;
-    roche.ui.toast(`你婉拒了 ${char.handle||char.name} 的好意`);
-    render();
-  };
-
-  el.querySelector("#btnAcceptFeed").onclick = async () => {
-    showLoading(`${char.handle||char.name} 正在向你走来…`);
-    let firstMsg = `（端着【${dish.name}】走到你面前，眼神有些期待）尝尝看？`;
-    try {
-      const res = await roche.ai.chat({messages:[
-        {role:"system",content:`你扮演「${char.name||char.handle}」。人设：${char.persona||char.bio||""}\n你端着你亲手准备的料理「${dish.name}」(${dish.desc}) 来找 user。请带上动作描写，说第一句话，邀请 user 品尝。字数50字以内，不要输出引号。`}
-      ], temperature:0.9});
-      if(res.text) firstMsg = res.text.trim();
-    } catch(e) { console.error("生成开场白失败", e); }
-    hideLoading();
-
-    S.chatWith = { char, dish, isPureChat:true };
-    S.chatLog = [{role:"assistant", text:firstMsg}];
-    S.pendingFeed = null; // 清除待确认状态
-    render();
-  };
-}
-
 function renderPureChatPage(el){
-  const {char, dish}=S.chatWith;
+  const {char, dish, userAction}=S.chatWith;
   el.innerHTML=`<div class="chat-page">
     <div class="chat-head">
       ${char.avatar?`<img src="${char.avatar}">`:`<div style="width:56px;height:56px;border-radius:50%;background:#ddd;"></div>`}
       <div class="info">
         <div class="name">${char.handle||char.name} 来投喂你了</div>
-        <div class="sub">带来了：【${dish.name}】 ${renderEmoList(dish.emojis, 16)}</div>
+        <div class="sub">你${userAction}：【${dish.name}】 ${renderEmoList(dish.emojis, 16)}</div>
       </div>
       <button class="btn ghost" id="chatDone">结束</button>
     </div>
@@ -877,12 +782,7 @@ function renderPureChatPage(el){
     </div>
   </div>`;
   
-  const sendMsg = (text) => {
-    const inp = el.querySelector("#chatInput");
-    inp.value = text;
-    el.querySelector("#chatSend").click();
-  };
-  
+  const sendMsg = (text) => { const inp = el.querySelector("#chatInput"); inp.value = text; el.querySelector("#chatSend").click(); };
   el.querySelector("#btnEat").onclick = () => sendMsg("（啊呜一口吃掉）好吃！");
   el.querySelector("#btnRej").onclick = () => sendMsg("（摇摇头）我现在不太想吃...");
   el.querySelector("#btnTaste").onclick = () => sendMsg("（小心翼翼地尝了一口）这味道...");
@@ -902,7 +802,7 @@ async function sendPureChat(el){
   S.chatLog.push({role:"user",text:t});
   S.isTyping = true; render();
   try{
-    const {char, dish}=S.chatWith;
+    const {char, dish, userAction}=S.chatWith;
     const res=await roche.ai.chat({messages:[
       {role:"system",content:`你扮演「${char.name||char.handle}」。人设：${char.persona||char.bio||""}\n你给 user 端来了「${dish.name}」(${dish.desc})。请根据 user 的反应继续自然聊天，带上动作描写。`},
       ...S.chatLog.map(m=>({role:m.role,content:m.text}))
@@ -916,7 +816,7 @@ async function sendPureChat(el){
 }
 
 async function onPureChatDone(){
-  const {char, dish}=S.chatWith;
+  const {char, dish, userAction}=S.chatWith;
   const wantSum=await roche.ui.confirm({title:"总结记忆？", message:"要把这次被投喂的经历总结成一段记忆吗？"});
   if(wantSum){
     showLoading("正在总结记忆…");
@@ -946,10 +846,10 @@ async function onPureChatDone(){
 /* ---------- 投喂 Char 逻辑 ---------- */
 async function feedToChar(dish, char){
   showLoading(`把 ${dish.name} 递给 ${char.handle||char.name}…`);
-  let payload={eaten:"吃了", mood:"平静", inner:"…", feeling:"这是一道菜。"};
+  let payload={eaten:"吃了", mood:"平静", inner:"…", feeling:"这是一道菜。", spoken:"谢谢你。"};
   try{
     const res=await roche.ai.chat({messages:[
-      {role:"system",content:`你扮演角色「${char.name||char.handle}」。人设：${char.persona||char.bio||""}\nuser 亲手为你制作了一道${dish.dark?"看起来非常诡异的黑暗":""}料理，端给了你。请严格按照人设和料理的情况输出 JSON：{"eaten":"","mood":"","inner":"","feeling":""}\n- eaten：吃没吃（例：吃了 / 只尝了一口 / 拒绝了 / 打翻了 / 珍藏起来 / 吐出来了）\n- mood：现在的心情（一两个词）\n- inner：心声 1-2 句\n- feeling：吃后感受/评价 1-2 句\n【重要】请记住这绝对是 user 在厨房里亲手为你做的，不要说这不是 user 做的！如果菜品有[特殊效果]，请自然地做出吐槽或赞美的反应。`},
+      {role:"system",content:`你扮演角色「${char.name||char.handle}」。人设：${char.persona||char.bio||""}\nuser 亲手为你制作了一道${dish.dark?"看起来非常诡异的黑暗":""}料理，端给了你。请严格输出 JSON：{"eaten":"","mood":"","inner":"","feeling":"","spoken":""}\n- eaten：吃没吃（例：吃了/婉拒/打翻/吐了）\n- mood：心情\n- inner：内心真实想法\n- feeling：对菜品的真实评价/感受\n- spoken：你对 user 说出口的第一句话（带动作）\n【重要】记住这是 user 亲手做的。如果有特殊效果，请在 inner 或 feeling 中体现。`},
       {role:"user",content:`菜名：${dish.name}${dish.dark?"(⚠️ 黑暗料理)":""}\n${dish.desc||""}\n味:${dish.taste} 感:${dish.texture} 氛:${dish.vibe}\n特殊效果：${dish.effect||"无"}`}
     ],temperature:1.0});
     const m=(res.text||"").match(/\{[\s\S]*\}/);
@@ -968,7 +868,7 @@ async function feedToChar(dish, char){
   S.reactionSet.add(reactKey); await roche.storage.set("reactionSet",[...S.reactionSet]); if(S.reactionSet.size>=5) await unlock("reactions_all");
 
   S.chatWith={char, dish, status:payload, isPureChat:false};
-  S.chatLog=[{role:"assistant", text:payload.feeling}];
+  S.chatLog=[{role:"assistant", text:payload.spoken || payload.feeling}];
   S.pendingDish=null; S.chatStatusOpen=true; S.isTyping=false; render();
 }
 
@@ -993,6 +893,7 @@ function renderChatPage(el){
       <div class="status-cell"><div class="lbl">🍽 是否吃了</div>${status.eaten||"—"}</div>
       <div class="status-cell"><div class="lbl">💗 心情</div>${status.mood||"—"}</div>
       <div class="status-cell" style="grid-column:span 2;"><div class="lbl">💭 心声</div>${status.inner||"—"}</div>
+      <div class="status-cell" style="grid-column:span 2;"><div class="lbl">👅 真实感受</div>${status.feeling||"—"}</div>
     </div>
 
     <div class="chat-log" id="chatLog">
@@ -1201,7 +1102,8 @@ function renderSet(el){
   const ptRange = el.querySelector("#ptRange"); const ptVal = el.querySelector("#ptVal");
   ptRange.oninput = (e) => { S.paddingTop = +e.target.value; ptVal.textContent = S.paddingTop + "px"; root.style.paddingTop = S.paddingTop + "px"; };
   ptRange.onchange = async () => { await roche.storage.set("paddingTop", S.paddingTop); };
-    el.querySelector("#toggleMidnight").onclick=async()=>{
+
+  el.querySelector("#toggleMidnight").onclick=async()=>{
     S.forceMidnight = !S.forceMidnight;
     await roche.storage.set("forceMidnight", S.forceMidnight);
     if(S.forceMidnight) { S.theme="night"; await roche.storage.set("theme", "night"); }
@@ -1248,21 +1150,6 @@ function renderSet(el){
     await roche.storage.set("recipes",[]); await roche.storage.set("feedRecords",[]); await roche.storage.set("customIngredients",[]); await roche.storage.set("achievements",{});
     render(); setTimeout(()=>unlock("wipe_all"),400);
   };
-}
-
-/* ============ 解锁成就弹窗 ============ */
-async function unlock(id){
-  if(S.achievements[id]) return;
-  S.achievements[id] = true;
-  await roche.storage.set("achievements", S.achievements);
-  const a = ACHIEVEMENTS[id];
-  if(!a) return;
-  const o = document.createElement("div");
-  o.style.cssText = `position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--card);color:var(--ink);padding:12px 20px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.15);display:flex;align-items:center;gap:12px;z-index:10000;opacity:0;transition:.4s;border-left:4px solid var(--acc);`;
-  o.innerHTML = `<div style="font-size:32px;">${a.icon}</div><div><div style="font-size:11px;color:var(--acc);font-weight:700;">成就解锁</div><div style="font-weight:700;font-size:15px;margin:2px 0;">${a.name}</div><div style="font-size:12px;opacity:.7;">${a.desc}</div></div>`;
-  document.body.appendChild(o);
-  setTimeout(() => { o.style.transform="translateX(-50%) translateY(0)"; o.style.opacity="1"; }, 50);
-  setTimeout(() => { o.style.transform="translateX(-50%) translateY(-20px)"; o.style.opacity="0"; setTimeout(()=>o.remove(),400); }, 4000);
 }
 
 /* ============ Konami 彩蛋（↑↑↓↓←→←→） ============ */

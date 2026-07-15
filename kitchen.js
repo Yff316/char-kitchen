@@ -1,7 +1,7 @@
 window.RochePlugin.register({
 id:"char-kitchen",
 name:"给 Char 炒菜的厨房",
-version:"4.7.0",
+version:"4.7.1",
 apps:[{
 id:"char-kitchen-home",
 name:"Char 的厨房",
@@ -715,30 +715,85 @@ async function handleBubbleClick(bubbleEl){
   render();
   generateInitialBeFedResponse(char, dish, choice);
 }
+/* ---------- 被投喂模式 ---------- */
+function renderBeFed(el){
+  el.innerHTML=`
+    <div style="text-align:center;color:#888;padding:40px 20px;line-height:1.6;">
+      这里是「被投喂」区。<br>Char 随时可能端着食物来找你。<br>点击飘浮的泡泡看看是谁带了什么好吃的！
+    </div>
+    <div id="bubbleContainer" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;"></div>
+  `;
+  const container = el.querySelector("#bubbleContainer");
+  const timer = setInterval(()=>{
+    if(!document.getElementById("bubbleContainer")) { clearInterval(timer); return; }
+    if(Math.random()>0.4) return;
+    const b = document.createElement("div");
+    b.className = "feed-bubble";
+    b.textContent = BUBBLE_EMOJIS[Math.floor(Math.random()*BUBBLE_EMOJIS.length)];
+    b.style.left = (10 + Math.random()*70) + "%";
+    b.style.pointerEvents = "auto";
+    b.style.animationDuration = (5 + Math.random()*4) + "s";
+    b.onclick = () => handleBubbleClick(b);
+    container.appendChild(b);
+    setTimeout(()=>b.remove(), 9000);
+  }, 1800);
+  el._bubbleTimer = timer;
+}
 
-async function generateInitialBeFedResponse(char, dish, choice){
-  S.isTyping = true; render();
+async function handleBubbleClick(bubbleEl){
+  const bubbleEmoji = bubbleEl.textContent;
+  bubbleEl.remove();
+  let chars=[]; try{ chars=await roche.character.list(); }catch{}
+  if(!chars.length){ roche.ui.toast("没有 Char 可以投喂你"); return; }
+  const char = chars[Math.floor(Math.random()*chars.length)];
+  
+  showLoading(`${char.handle||char.name} 正在向你走来…`);
+
+  // 1. 决定菜品
+  let dish;
+  if(S.recipes.length > 0 && Math.random() > 0.4){
+    dish = S.recipes[Math.floor(Math.random()*S.recipes.length)];
+  } else {
+    dish = { name: "特制料理", desc: "不知道加了什么，但看起来是为你准备的。", emojis: [bubbleEmoji, "✨"], effect: "充满心意", taste:"未知", texture:"未知", vibe:"惊喜" };
+    try{
+      const res=await roche.ai.chat({messages:[
+        {role:"system",content:`你扮演「${char.name||char.handle}」。人设：${char.persona||char.bio||""}\n请为你喜欢的人(user)自创一道料理。JSON格式：{"name":"菜名","desc":"描述","effect":"功效或特殊之处","emojis":["🍲","✨"]}`}
+      ], temperature: 0.9});
+      const m=(res.text||"").match(/\{[\s\S]*\}/); 
+      if(m) {
+        const parsed = JSON.parse(m[0]);
+        Object.assign(dish, parsed);
+        if(!Array.isArray(dish.emojis)) dish.emojis = [bubbleEmoji, "✨"];
+      }
+    }catch(e){ console.error("生成菜品失败", e); }
+  }
+
+  // 2. 生成角色的开场白
+  let firstMsg = `（端着【${dish.name}】走到你面前，眼神有些期待）尝尝看？`;
   try {
     const res = await roche.ai.chat({messages:[
-      {role:"system",content:`你扮演「${char.name||char.handle}」。人设：${char.persona||char.bio||""}\n你给 user 端来了你准备的料理「${dish.name}」。\nuser 的反应是：【${choice}】。\n请根据 user 的反应，说第一句话（带动作描写，符合人设），并且询问 user 的感受或为什么拒绝。`}
+      {role:"system",content:`你扮演「${char.name||char.handle}」。人设：${char.persona||char.bio||""}\n你端着你亲手准备的料理「${dish.name}」(${dish.desc}) 来找 user。请带上动作描写，说第一句话，邀请 user 品尝。字数50字以内，不要输出引号。`}
     ], temperature:0.9});
-    S.chatLog.push({role:"assistant", text:res.text||"..."});
-    S.isTyping = false; render();
-  } catch (e) {
-    S.isTyping = false; render();
-    if(await showErrorDialog("生成回复")) generateInitialBeFedResponse(char, dish, choice);
-    else { S.chatWith = null; render(); }
-  }
+    if(res.text) firstMsg = res.text.trim();
+  } catch(e) { console.error("生成开场白失败", e); }
+
+  hideLoading();
+
+  // 3. 进入聊天
+  S.chatWith = { char, dish, isPureChat:true };
+  S.chatLog = [{role:"assistant", text:firstMsg}];
+  S.tab = "feed";
+  render();
 }
 
 function renderPureChatPage(el){
-  const {char, dish, userAction}=S.chatWith;
+  const {char, dish}=S.chatWith;
   el.innerHTML=`<div class="chat-page">
     <div class="chat-head">
       ${char.avatar?`<img src="${char.avatar}">`:`<div style="width:56px;height:56px;border-radius:50%;background:#ddd;"></div>`}
       <div class="info">
-        <div class="name">${char.handle||char.name} 投喂了你</div>
-        <div class="sub">你${userAction}：【${dish.name}】 ${renderEmoList(dish.emojis, 16)}</div>
+        <div class="name">${char.handle||char.name} 来投喂你了</div>
+        <div class="sub">带来了：【${dish.name}】 ${renderEmoList(dish.emojis, 16)}</div>
       </div>
       <button class="btn ghost" id="chatDone">结束</button>
     </div>
@@ -746,12 +801,28 @@ function renderPureChatPage(el){
       ${S.chatLog.map(m=>`<div class="chat-msg ${m.role==='user'?'me':'other'}">${m.text}</div>`).join("")}
       ${S.isTyping ? `<div class="chat-msg other"><div class="typing-dots"><span></span><span></span><span></span></div></div>` : ''}
     </div>
+    <div style="display:flex; gap:6px; margin:8px 0 4px; padding:0 4px; overflow-x:auto; white-space:nowrap;">
+      <button class="chip" id="btnEat">😋 吃掉</button>
+      <button class="chip" id="btnRej">🙅 婉拒</button>
+      <button class="chip" id="btnTaste">👅 尝一口</button>
+    </div>
     <div class="chat-in">
       <input id="chatInput" placeholder="回复 ${char.handle||char.name}..." ${S.isTyping?"disabled":""}>
       <button class="btn ghost" id="chatRedraw" title="重绘最后一条" style="padding:9px;font-size:16px;" ${S.isTyping?"disabled":""}>🔄</button>
       <button class="btn" id="chatSend" ${S.isTyping?"disabled":""}>发送</button>
     </div>
   </div>`;
+  
+  const sendMsg = (text) => {
+    const inp = el.querySelector("#chatInput");
+    inp.value = text;
+    el.querySelector("#chatSend").click();
+  };
+  
+  el.querySelector("#btnEat").onclick = () => sendMsg("（啊呜一口吃掉）好吃！");
+  el.querySelector("#btnRej").onclick = () => sendMsg("（摇摇头）我现在不太想吃...");
+  el.querySelector("#btnTaste").onclick = () => sendMsg("（小心翼翼地尝了一口）这味道...");
+  
   el.querySelector("#chatSend").onclick=()=>sendPureChat(el);
   el.querySelector("#chatRedraw").onclick=()=>redrawChat(el, true);
   el.querySelector("#chatInput").onkeydown=(e)=>{ if(e.key==="Enter") sendPureChat(el); };
@@ -767,9 +838,9 @@ async function sendPureChat(el){
   S.chatLog.push({role:"user",text:t});
   S.isTyping = true; render();
   try{
-    const {char, dish, userAction}=S.chatWith;
+    const {char, dish}=S.chatWith;
     const res=await roche.ai.chat({messages:[
-      {role:"system",content:`你扮演「${char.name||char.handle}」。人设：${char.persona||char.bio||""}\n你给 user 端来了「${dish.name}」，user ${userAction}。请继续自然聊天。`},
+      {role:"system",content:`你扮演「${char.name||char.handle}」。人设：${char.persona||char.bio||""}\n你给 user 端来了「${dish.name}」(${dish.desc})。请根据 user 的反应继续自然聊天，带上动作描写。`},
       ...S.chatLog.map(m=>({role:m.role,content:m.text}))
     ],temperature:0.9});
     S.chatLog.push({role:"assistant",text:res.text||"..."});
@@ -781,15 +852,15 @@ async function sendPureChat(el){
 }
 
 async function onPureChatDone(){
-  const {char, dish, userAction}=S.chatWith;
+  const {char, dish}=S.chatWith;
   const wantSum=await roche.ui.confirm({title:"总结记忆？", message:"要把这次被投喂的经历总结成一段记忆吗？"});
   if(wantSum){
     showLoading("正在总结记忆…");
-    let text=`Char给user做菜：${char.handle||char.name} 给 user 做了「${dish.name}」，user ${userAction}。`;
+    let text=`Char给user做菜：${char.handle||char.name} 给 user 做了「${dish.name}」。`;
     try{
       const sum=await roche.ai.chat({messages:[
-        {role:"system",content:"提取出菜的名字、总结大概功能口味和味道、总结user的感受（吃没吃）、总结大概剧情即可。提醒这是 Char 在厨房给 user 做的菜。字数≤100字。"},
-        {role:"user",content:`菜：${dish.name}\nuser反应：${userAction}\n对话：\n${S.chatLog.map(m=>`${m.role}:${m.text}`).join("\n")}`}
+        {role:"system",content:"提取出菜的名字、总结大概功能口味、总结 user 到底吃没吃、总结大概剧情即可。提醒这是 Char 端给 user 的菜。字数≤100字。"},
+        {role:"user",content:`菜：${dish.name}\n对话：\n${S.chatLog.map(m=>`${m.role}:${m.text}`).join("\n")}`}
       ]});
       text=(sum.text||"").trim()||text;
     }catch{}

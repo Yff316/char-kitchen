@@ -2,7 +2,7 @@
 window.RochePlugin.register({
   id: "char-kitchen",
   name: "厨房",
-  version: "6.0.0",
+  version: "6.0.1",
   apps: [{
     id: "char-kitchen-home",
     name: "Char 的厨房",
@@ -216,6 +216,23 @@ window.RochePlugin.register({
         setTimeout(() => { if (el) el.scrollTop = el.scrollHeight; }, 50);
       }
 
+      function toolSVG(type) {
+        if (type === "spatula") {
+          return `<svg viewBox="0 0 40 40" width="54" height="54" style="filter:drop-shadow(2px 4px 4px rgba(0,0,0,0.2));">
+            <line x1="36" y1="4" x2="24" y2="16" stroke="#8b4513" stroke-width="5" stroke-linecap="round"/>
+            <line x1="24" y1="16" x2="16" y2="24" stroke="#c0c0c0" stroke-width="3"/>
+            <path d="M11,23 L21,27 L15,37 L5,33 Z" fill="#d0d0d0"/>
+          </svg>`;
+        } else {
+          return `<svg viewBox="0 0 40 40" width="54" height="54" style="filter:drop-shadow(2px 4px 4px rgba(0,0,0,0.2));">
+            <line x1="36" y1="4" x2="22" y2="18" stroke="#8b4513" stroke-width="5" stroke-linecap="round"/>
+            <line x1="22" y1="18" x2="16" y2="24" stroke="#c0c0c0" stroke-width="3"/>
+            <ellipse cx="12" cy="28" rx="8" ry="6" fill="#d0d0d0" transform="rotate(35 12 28)"/>
+            <ellipse cx="12" cy="28" rx="5" ry="3" fill="#a0a0a0" transform="rotate(35 12 28)"/>
+          </svg>`;
+        }
+      }
+
       /* ============ 5. CSS 样式 ============ */
       const style = document.createElement("style");
       style.setAttribute("data-plugin", "char-kitchen");
@@ -244,11 +261,12 @@ window.RochePlugin.register({
         .pan-food { position:absolute; inset:0; pointer-events:none; overflow:hidden; border-radius:0 0 50% 50%/0 0 100% 100%; z-index:1; }
         .pan-food span { position:absolute; font-size:18px; transform:translate(-50%,-50%); transition:left .1s ease, top .1s ease; }
         .pan-food span img { display:block; }
-        .tool-icon { position:absolute; right:15px; top:-5px; font-size:36px; z-index:3; transform-origin:bottom center; pointer-events:none; }
+        
+        .tool-icon { position:absolute; right:15px; top:-15px; z-index:3; transform-origin:80% 20%; pointer-events:none; }
         .tool-icon.toss { animation:toolToss .7s ease; }
-        @keyframes toolToss { 0% { transform:scaleX(-1) rotate(20deg); } 50% { transform:scaleX(-1) rotate(-40deg) translateY(20px); } 100% { transform:scaleX(-1) rotate(20deg); } }
+        @keyframes toolToss { 0% { transform:rotate(0); } 50% { transform:rotate(-35deg) translate(-10px, 10px); } 100% { transform:rotate(0); } }
         .tool-icon.stir { animation:toolStir 1.5s linear infinite; }
-        @keyframes toolStir { 0% { transform:scaleX(-1) rotate(-10deg) translateX(0); } 25% { transform:scaleX(-1) rotate(-30deg) translateX(20px); } 50% { transform:scaleX(-1) rotate(-10deg) translateX(40px); } 75% { transform:scaleX(-1) rotate(10deg) translateX(20px); } 100% { transform:scaleX(-1) rotate(-10deg) translateX(0); } }
+        @keyframes toolStir { 0% { transform:rotate(0) translate(0,0); } 25% { transform:rotate(-15deg) translate(-15px,5px); } 50% { transform:rotate(0) translate(-30px,10px); } 75% { transform:rotate(15deg) translate(-15px,5px); } 100% { transform:rotate(0) translate(0,0); } }
 
         .flame-holder { position:absolute; left:50%; transform:translateX(-50%); width:80px; height:100px; z-index:1; pointer-events:none; display:flex; justify-content:center; align-items:flex-start; transition:top 0.3s; }
         .fire-ctrl { display:flex; align-items:center; justify-content:center; gap:10px; padding:6px 0; font-size:12px; }
@@ -564,7 +582,6 @@ window.RochePlugin.register({
         const spiceCountsEls = Object.entries(spiceCounts).map(([s, c]) => `${SPICE_FX[s]?.name||s} x${c}`).join("、");
         
         const actionBtnText = S.tool === "spatula" ? "🥢 颠勺" : "🔄 搅拌";
-        const toolTransform = S.tool === "spatula" ? "scaleX(-1) rotate(20deg)" : "scaleX(-1) rotate(-10deg)";
 
         el.innerHTML = `
           ${S.cravingBanner ? `
@@ -580,7 +597,7 @@ window.RochePlugin.register({
               <div class="pan-holder" id="pan">
                 ${panSVG(S.pot)}
                 <div class="pan-food">${foodDots}</div>
-                <div class="tool-icon" id="toolIcon" style="transform: ${toolTransform}">🥄</div>
+                <div class="tool-icon" id="toolIcon">${toolSVG(S.tool)}</div>
               </div>
               <div class="flame-holder" id="flame" style="top:${90 - S.fire * 5}px">${flameSVG(S.fire)}</div>
             </div>

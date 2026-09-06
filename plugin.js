@@ -2,7 +2,7 @@
 window.RochePlugin.register({
   id: "char-kitchen",
   name: "厨房",
-  version: "6.0.1",
+  version: "6.1.0",
   apps: [{
     id: "char-kitchen-home",
     name: "Char 的厨房",
@@ -65,15 +65,16 @@ window.RochePlugin.register({
         pink: { bg: "#fff2f6", ink: "#40202c", acc: "#e668a0", card: "#fff", loader: "🍣" },
       };
 
+      // 镂空图标库
       const ICONS = {
-        stove: `<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>`,
-        book: `<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>`,
-        feed: `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`,
-        custom: `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`,
-        set: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`
+        stove: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18"/><path d="M5 12v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/><path d="M9 5v2"/><path d="M15 5v2"/><path d="M12 4v3"/></svg>`,
+        book: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>`,
+        feed: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 7c0-2.8 2.2-5 5-5s5 2.2 5 5c0 4-3 5-5 5h-2v9a2 2 0 0 1-4 0V12H7c-2.8 0-5-2.2-5-5s2.2-5 5-5 5 2.2 5 5z"/></svg>`,
+        custom: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`,
+        set: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`
       };
 
-      /* ============ 2. 成就系统 ============ */
+      /* ============ 2. 成就系统 (省略过长说明) ============ */
       const HIDDEN_IDS = new Set(["cabinet_open", "all_theme", "reset_ach", "wipe_all", "konami", "single_ingredient", "only_spice", "big_dish", "dark_at_midnight", "reactions_all", "char_all_fed", "late_night_open", "seven_days"]);
       const ACHIEVEMENTS = {
         first_cook: { icon: "👨‍🍳", name: "第一次下厨", desc: "完成第一道菜" },
@@ -166,7 +167,7 @@ window.RochePlugin.register({
         forceMidnight: (await roche.storage.get("forceMidnight")) || false,
         paddingTop: (await roche.storage.get("paddingTop")) || 0,
         chatWith: null, chatLog: [], cravingBanner: null, pendingDish: null,
-        bookTab: "all", feedTab: "feedChar", chatStatusOpen: true, isTyping: false,
+        bookTab: "all", subBook: null, feedTab: "feedChar", chatStatusOpen: true, isTyping: false,
         
         achievements: (await roche.storage.get("achievements")) || {},
         spiceUsed: new Set((await roche.storage.get("spiceUsed")) || []),
@@ -241,10 +242,14 @@ window.RochePlugin.register({
         .ck-top { display:flex; justify-content:space-between; align-items:center; padding:10px 16px; font-weight:700; border-bottom:1px solid rgba(0,0,0,.05); flex-shrink:0; }
         .ck-close { border:none; background:transparent; font-size:22px; cursor:pointer; color:var(--ink); }
         .ck-body { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:8px 16px 20px; position:relative; scroll-behavior:smooth; }
-        .ck-nav { height:60px; background:var(--card); display:flex; box-shadow:0 -4px 20px rgba(0,0,0,.08); border-top:1px solid rgba(0,0,0,.05); flex-shrink:0; }
-        .ck-nav button { flex:1; background:none; border:none; font-size:11px; color:#888; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 0; }
+        
+        /* 镂空底栏样式 */
+        .ck-nav { height:60px; background:rgba(255,255,255,0.85); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); display:flex; border-top:1px solid rgba(0,0,0,.05); flex-shrink:0; }
+        .ck[data-theme=night] .ck-nav { background:rgba(35,40,66,0.85); border-top:1px solid rgba(255,255,255,.05); }
+        .ck-nav button { flex:1; background:none; border:none; font-size:11px; color:#999; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 0; transition:color 0.2s; }
         .ck-nav button.on { color:var(--acc); font-weight:700; }
-        .ck-nav .ico svg { width:22px; height:22px; stroke:currentColor; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+        .ck-nav .ico svg { width:22px; height:22px; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+        
         .midnight-tag { display:inline-block; padding:2px 10px; border-radius:10px; background:linear-gradient(90deg,#3a3f6b,#5a3a6b); color:#ffb86b; font-size:11px; margin-left:8px; }
         .craving { background:linear-gradient(90deg,#ffdcae,#ffb98a); padding:10px 14px; border-radius:12px; margin:8px 0; cursor:pointer; display:flex; gap:10px; align-items:center; font-size:13px; box-shadow:0 4px 12px rgba(232,134,59,.2); }
         .craving img { width:36px; height:36px; border-radius:50%; object-fit:cover; }
@@ -308,11 +313,35 @@ window.RochePlugin.register({
         .btn.ghost { background:transparent; color:var(--acc); border:1.5px solid var(--acc); box-shadow:none; }
         .btn:disabled { opacity:.4; cursor:not-allowed; box-shadow:none; }
         .card { background:var(--card); border-radius:14px; padding:12px; margin-bottom:10px; box-shadow:0 2px 8px rgba(0,0,0,.04); }
-        .card.dark { background:linear-gradient(135deg,#1a1023,#2a1035); color:#e8c8ff; border:1px solid #6a2a8a; box-shadow:0 0 16px rgba(140,60,200,.3); }
-        .card.dark .tag { background:rgba(255,255,255,.08); color:#c8a8e8; }
+        
+        /* 卷轴特效与书籍 */
+        .book-cover { width:110px; height:150px; border-radius:4px 14px 14px 4px; position:relative; cursor:pointer; perspective:1000px; transform-style:preserve-3d; transition:transform 0.4s ease, opacity 0.4s; box-shadow:4px 4px 15px rgba(0,0,0,0.2); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:10px; }
+        .book-cover.normal-book { background:linear-gradient(135deg, #e4c995, #c99b4a); color:#fff; border: 2px solid #b88a44; }
+        .book-cover.dark-book { background:linear-gradient(135deg, #352144, #180a22); color:#cfa5ff; border: 2px solid #4a2a6a; }
+        .book-cover .spine { position:absolute; left:0; top:0; bottom:0; width:12px; background:rgba(0,0,0,0.2); border-radius:3px 0 0 3px; border-right:1px solid rgba(255,255,255,0.1); }
+        .book-cover h3 { font-size:16px; text-shadow:1px 1px 3px rgba(0,0,0,0.6); z-index:2; margin:0; letter-spacing:1px; }
+        .book-cover:hover { transform:scale(1.05) translateY(-5px); box-shadow:4px 10px 20px rgba(0,0,0,0.3); }
+        .book-cover.open { transform:rotateY(-90deg) scale(1.1); opacity:0; pointer-events:none; }
+        
+        .scroll-list { display:flex; flex-direction:column; gap:16px; margin-top:8px; }
+        .scroll-item { position:relative; perspective:1000px; }
+        .scroll-bar { background:linear-gradient(to bottom, #dcb962, #c79a3c, #dcb962); height:40px; border-radius:20px; display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff; text-shadow:1px 1px 3px rgba(0,0,0,0.4); cursor:pointer; box-shadow:0 4px 8px rgba(0,0,0,0.2); position:relative; z-index:2; padding:0 30px; letter-spacing:1px; font-size:15px; }
+        .scroll-bar::before, .scroll-bar::after { content:''; position:absolute; top:-2px; bottom:-2px; width:16px; background:linear-gradient(to right, #6b4c30, #4a321a, #6b4c30); border-radius:4px; box-shadow:inset 0 0 4px rgba(0,0,0,0.5); }
+        .scroll-bar::before { left:-6px; }
+        .scroll-bar::after { right:-6px; }
+        .scroll-bar:hover { filter:brightness(1.1); }
+        
+        .scroll-paper { background:linear-gradient(to bottom, #fffaf0, #f8ecc9); border:1px solid #dcb; border-top:none; margin:0 14px; padding:0 16px; max-height:0; overflow:hidden; opacity:0; transform-origin:top; transform:scaleY(0); transition:max-height 0.5s ease, padding 0.5s ease, opacity 0.4s ease, transform 0.5s ease; box-shadow:inset 0 0 15px rgba(0,0,0,0.05), 0 6px 15px rgba(0,0,0,0.15); color:#4a3623; border-radius:0 0 8px 8px; }
+        .scroll-item.open .scroll-paper { max-height:600px; padding:16px; opacity:1; transform:scaleY(1); border-bottom:5px solid #dcb962; }
+        
+        .scroll-item.dark-scroll .scroll-bar { background:linear-gradient(to bottom, #6a4a8a, #4a2a6a, #6a4a8a); }
+        .scroll-item.dark-scroll .scroll-bar::before, .scroll-item.dark-scroll .scroll-bar::after { background:linear-gradient(to right, #2a1a3a, #1a0a2a, #2a1a3a); }
+        .scroll-item.dark-scroll .scroll-paper { background:linear-gradient(to bottom, #2d2633, #1e1823); border-color:#4a3a5a; color:#d8c0ff; box-shadow:inset 0 0 15px rgba(0,0,0,0.5), 0 6px 15px rgba(0,0,0,0.3); border-bottom:5px solid #6a4a8a; }
+        
         .dish-emo { font-size:26px; letter-spacing:2px; line-height:30px; }
         .dish-name { font-weight:700; font-size:15px; margin:4px 0; }
         .tag { display:inline-block; background:rgba(0,0,0,.06); padding:2px 8px; border-radius:10px; font-size:11px; margin:2px 4px 2px 0; color:#666; }
+        .scroll-item.dark-scroll .tag { background:rgba(255,255,255,0.1); color:#c8a8e8; }
         
         .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px); display:flex; align-items:center; justify-content:center; z-index:9998; }
         .loader-box { background:var(--card); border-radius:20px; padding:32px 44px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.3); min-width:220px; color:var(--ink); opacity:1; }
@@ -397,7 +426,11 @@ window.RochePlugin.register({
       function nav() {
         container.querySelectorAll("#ckNav button").forEach(b => {
           b.classList.toggle("on", b.dataset.t === S.tab);
-          b.onclick = () => { S.tab = b.dataset.t; render(); };
+          b.onclick = () => { 
+            S.tab = b.dataset.t; 
+            if (S.tab === "book") S.subBook = null; // 每次点开菜谱都回到书架
+            render(); 
+          };
         });
       }
 
@@ -579,7 +612,6 @@ window.RochePlugin.register({
         
         const spiceCounts = {};
         S.spices.forEach(s => spiceCounts[s] = (spiceCounts[s] || 0) + 1);
-        const spiceCountsEls = Object.entries(spiceCounts).map(([s, c]) => `${SPICE_FX[s]?.name||s} x${c}`).join("、");
         
         const actionBtnText = S.tool === "spatula" ? "🥢 颠勺" : "🔄 搅拌";
 
@@ -600,12 +632,26 @@ window.RochePlugin.register({
                 <div class="tool-icon" id="toolIcon">${toolSVG(S.tool)}</div>
               </div>
               <div class="flame-holder" id="flame" style="top:${90 - S.fire * 5}px">${flameSVG(S.fire)}</div>
+              
+              ${S.spices.length > 0 ? `
+                <div style="position:absolute; right:10px; top:10px; z-index:10; display:flex; flex-direction:column; align-items:flex-end; gap:4px; max-width:90px;">
+                  <div style="font-size:10px; color:rgba(0,0,0,0.5); font-weight:bold; margin-bottom:2px; text-shadow:0 1px 1px rgba(255,255,255,0.8);">加入调料:</div>
+                  ${Object.entries(spiceCounts).map(([s, c]) => 
+                    `<div style="display:flex;align-items:center;background:rgba(255,255,255,0.85);backdrop-filter:blur(4px);border-radius:12px;padding:2px 8px;font-size:12px;font-weight:bold;color:#333;box-shadow:0 2px 5px rgba(0,0,0,0.15);">
+                      <span style="font-size:14px;margin-right:4px;">${SPICE_FX[s]?.name||s}</span> x${c}
+                    </div>`
+                  ).join("")}
+                  <button id="clrSpices" class="btn ghost" style="padding:2px 8px; font-size:11px; margin-top:2px; background:rgba(255,255,255,0.7); color:#d33; border:none; box-shadow:0 2px 4px rgba(0,0,0,0.1);">清空</button>
+                </div>
+              ` : ""}
             </div>
+            
             <div class="fire-ctrl">
               <span>🚫</span><input type="range" min="0" max="4" value="${S.fire}" id="fire"><span>猛🔥</span>
               <span style="color:#999;font-size:11px;">${["熄火", "小火", "中火", "中大火", "猛火"][S.fire]}</span>
             </div>
           </div>
+          
           <div class="h"><span>锅具</span></div>
           <div class="row">${POTS.map(p => `<div class="chip ${S.pot === p.id ? "on" : ""}" data-pot="${p.id}">${p.name}·${p.tag}</div>`).join("")}</div>
           <div class="h"><span>工具</span></div>
@@ -619,15 +665,6 @@ window.RochePlugin.register({
             <div class="h" id="cabHd" style="margin:0;cursor:pointer;"><span>柜子里的稀有调料</span><span class="caret">${S.cabinetOpen ? "▼" : "▶"}</span></div>
             ${S.cabinetOpen ? `<div class="grid" style="margin-top:6px;">${SPICES_CABINET.map(s => `<div class="cell" data-sp="${s}" title="${SPICE_FX[s]?.name || ""}">${s}</div>`).join("")}</div>` : ""}
           </div>
-          
-          ${S.spices.length > 0 ? `
-            <div class="card" style="margin: 8px 0; background: rgba(0,0,0,0.02); border: 1px dashed rgba(0,0,0,0.1);">
-              <div style="font-size:12px;color:#666;display:flex;justify-content:space-between;align-items:center;">
-                <span>已加: ${spiceCountsEls}</span>
-                <button id="clrSpices" class="btn ghost" style="padding:2px 8px;font-size:11px;border:none;">清空</button>
-              </div>
-            </div>
-          ` : ""}
 
           ${Object.entries(FRIDGE).map(([c, l]) => catBlock(c, l)).join("")}
           ${S.custom.length ? `
@@ -898,43 +935,114 @@ window.RochePlugin.register({
           setTimeout(() => feedToChar(rec, cravChar), 300); 
           return; 
         }
-        S.tab = "book"; render();
+        S.tab = "book"; S.subBook = null; render();
       }
 
-      /* ---------- 菜谱 ---------- */
+      /* ---------- 菜谱（书与卷轴） ---------- */
       function renderBook(el) {
-        const list = S.bookTab === "starred" ? S.recipes.filter(r => r.starred) : S.recipes;
+        // 如果处于书架总览状态（普通分类）
+        if (S.bookTab === "all" && !S.subBook) {
+          const normalCount = S.recipes.filter(r => !r.dark).length;
+          const darkCount = S.recipes.filter(r => r.dark).length;
+          
+          el.innerHTML = `
+            <div class="tab-bar">
+              <button class="${S.bookTab === "all" ? "on" : ""}" data-bt="all">📖 分类书架</button>
+              <button class="${S.bookTab === "starred" ? "on" : ""}" data-bt="starred">🌟 收藏</button>
+            </div>
+            <div style="display:flex; gap:24px; justify-content:center; padding: 40px 10px; flex-wrap:wrap;">
+              <div class="book-cover normal-book" data-book="normal">
+                <div class="spine"></div>
+                <h3>常规菜谱</h3>
+                <div style="font-size:11px; margin-top:8px; opacity:0.8;">共 ${normalCount} 道</div>
+              </div>
+              <div class="book-cover dark-book" data-book="dark">
+                <div class="spine"></div>
+                <h3>黑暗料理</h3>
+                <div style="font-size:11px; margin-top:8px; opacity:0.8;">共 ${darkCount} 道</div>
+              </div>
+            </div>
+            <div style="text-align:center; color:#888; font-size:12px; margin-top:20px;">点击书本翻开你的菜谱典籍</div>
+          `;
+          
+          el.querySelectorAll(".book-cover").forEach(b => {
+            b.onclick = () => {
+              b.classList.add("open");
+              setTimeout(() => { S.subBook = b.dataset.book; render(); }, 400);
+            };
+          });
+          el.querySelectorAll("[data-bt]").forEach(b => b.onclick = () => { S.bookTab = b.dataset.bt; S.subBook = null; render(); });
+          return;
+        }
+
+        // 渲染卷轴列表状态
+        let list = [];
+        let title = "菜谱";
+        if (S.bookTab === "starred") {
+          list = S.recipes.filter(r => r.starred);
+          title = "🌟 收藏的卷轴";
+        } else {
+          list = S.recipes.filter(r => (S.subBook === "dark" ? r.dark : !r.dark));
+          title = S.subBook === "dark" ? "☠️ 黑暗料理典籍" : "📖 常规菜谱典籍";
+        }
+
         el.innerHTML = `
           <div class="tab-bar">
-            <button class="${S.bookTab === "all" ? "on" : ""}" data-bt="all">普通菜谱 (${S.recipes.length})</button>
-            <button class="${S.bookTab === "starred" ? "on" : ""}" data-bt="starred">🌟 收藏 (${S.recipes.filter(r => r.starred).length})</button>
+            <button class="${S.bookTab === "all" ? "on" : ""}" data-bt="all">📖 分类书架</button>
+            <button class="${S.bookTab === "starred" ? "on" : ""}" data-bt="starred">🌟 收藏</button>
           </div>
-          ${list.length ? list.map(r => `
-            <div class="card ${r.dark ? "dark" : ""}">
-              <div class="dish-emo" style="display:flex;flex-wrap:wrap;gap:2px;align-items:center;">
-                ${renderEmoList(r.emojis, 26)}
-                ${r.spices?.length ? "<span style='margin:0 4px;opacity:0.5;'>·</span>" + [...new Set(r.spices)].join("") : ""}
+          ${S.bookTab === "all" ? `<button class="btn ghost" id="backBtn" style="margin-bottom:12px;">◀ 合上书本</button>` : ""}
+          <div style="font-weight:bold; margin-bottom: 12px; color:var(--ink);">${title} (${list.length})</div>
+          
+          <div class="scroll-list">
+            ${list.length ? list.map(r => `
+              <div class="scroll-item ${r.dark ? 'dark-scroll' : ''}">
+                <div class="scroll-bar">
+                  ${r.dark ? '☠️ ' : ''}${r.name}
+                </div>
+                <div class="scroll-paper">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div class="dish-emo" style="display:flex;flex-wrap:wrap;gap:2px;">
+                      ${renderEmoList(r.emojis, 26)}
+                      ${r.spices?.length ? "<span style='margin:0 4px;opacity:0.5;'>·</span>" + [...new Set(r.spices)].join("") : ""}
+                    </div>
+                    <span style="cursor:pointer;font-size:18px;" data-act="star" data-id="${r.id}">${r.starred ? "🌟" : "☆"}</span>
+                  </div>
+                  <div style="font-size:13px;opacity:.85;margin-bottom:8px;line-height:1.4;">${r.desc || ""}</div>
+                  <div style="margin-bottom:8px;">
+                    <span class="tag">${r.fire === 0 ? "🍽 冷调" : ("🍳 " + (POTS.find(p => p.id === r.pot)?.name || "锅"))}</span> 
+                    ${r.fire > 0 ? `<span class="tag">🔥 ${["熄", "小", "中", "中大", "猛"][r.fire]}火</span>` : ""}
+                    <span class="tag">味 ${r.taste}</span><span class="tag">感 ${r.texture}</span><span class="tag">氛 ${r.vibe}</span>
+                  </div>
+                  ${r.effect ? `<div style="font-size:12px;color:var(--acc);margin-bottom:12px;">✨ ${r.effect}</div>` : ""}
+                  <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <button class="btn" style="flex:1;" data-act="feed" data-id="${r.id}">🥄 投喂</button>
+                    <button class="btn ghost" style="flex:1;" data-act="gift" data-id="${r.id}">🎁 送</button>
+                    <button class="btn ghost" style="color:#d33;border-color:#d33;" data-act="del" data-id="${r.id}">删除</button>
+                  </div>
+                </div>
               </div>
-              <div class="dish-name" style="display:flex;justify-content:space-between;">
-                <span>${r.dark ? "☠️ " : ""}${r.name}${r.midnight ? ' <span style="font-size:12px;color:#ffb86b;">🌙</span>' : ""}</span>
-                <span style="cursor:pointer;font-size:18px;" data-act="star" data-id="${r.id}">${r.starred ? "🌟" : "☆"}</span>
-              </div>
-              <div style="font-size:13px;opacity:.85;">${r.desc || ""}</div>
-              <div style="margin-top:6px;">
-                <span class="tag">${r.fire === 0 ? "🍽 冷调" : ("🍳 " + (POTS.find(p => p.id === r.pot)?.name || "锅"))}</span> 
-                ${r.fire > 0 ? `<span class="tag">🔥 ${["熄", "小", "中", "中大", "猛"][r.fire]}火</span>` : ""}
-                <span class="tag">味 ${r.taste}</span><span class="tag">感 ${r.texture}</span><span class="tag">氛 ${r.vibe}</span>
-              </div>
-              ${r.effect ? `<div style="font-size:12px;opacity:.75;margin-top:4px;">✨ ${r.effect}</div>` : ""}
-              <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
-                <button class="btn" data-act="feed" data-id="${r.id}">🥄 投喂</button>
-                <button class="btn ghost" data-act="gift" data-id="${r.id}">🎁 送给 Char</button>
-                <button class="btn ghost" data-act="del" data-id="${r.id}">删除</button>
-              </div>
-            </div>`).join("") : `<div style="text-align:center;color:#aaa;padding:40px;">这里空空如也</div>`}`;
-            
-        el.querySelectorAll("[data-bt]").forEach(b => b.onclick = () => { S.bookTab = b.dataset.bt; render(); });
-        el.querySelectorAll("[data-act]").forEach(b => b.onclick = async () => {
+            `).join("") : `<div style="text-align:center;color:#aaa;padding:40px;">这里空空如也，快去厨房研制新菜吧</div>`}
+          </div>
+        `;
+
+        if (el.querySelector("#backBtn")) {
+          el.querySelector("#backBtn").onclick = () => { S.subBook = null; render(); };
+        }
+        
+        el.querySelectorAll(".scroll-bar").forEach(b => {
+          b.onclick = () => {
+            const parent = b.parentElement;
+            const isOpen = parent.classList.contains("open");
+            el.querySelectorAll(".scroll-item").forEach(i => i.classList.remove("open"));
+            if (!isOpen) parent.classList.add("open");
+          };
+        });
+        
+        el.querySelectorAll("[data-bt]").forEach(b => b.onclick = () => { S.bookTab = b.dataset.bt; S.subBook = null; render(); });
+        
+        el.querySelectorAll("[data-act]").forEach(b => b.onclick = async (e) => {
+          e.stopPropagation();
           const r = S.recipes.find(x => x.id === b.dataset.id); if (!r) return;
           const a = b.dataset.act;
           if (a === "del") { S.recipes = S.recipes.filter(x => x.id !== r.id); await roche.storage.set("recipes", S.recipes); render(); }
@@ -1021,7 +1129,8 @@ window.RochePlugin.register({
 
         el.innerHTML = `
           <div style="text-align:center;color:#888;padding:40px 20px;line-height:1.6;position:relative;z-index:2;">
-            这里是「被投喂」区。<br>Char 随时可能端着食物来找你。<br>点击飘浮的泡泡看看是谁带了什么好吃的！
+            这里是「被投喂」区。
+<br>Char 随时可能端着食物来找你。<br>点击飘浮的泡泡看看是谁带了什么好吃的！
           </div>
           <div id="bubbleContainer" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:10;"></div>
         `;

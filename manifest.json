@@ -1,7 +1,7 @@
 {
   "id": "char-kitchen",
   "name": "厨房",
-  "version": "6.0.0",
+  "version": "6.0.1",
   "description": "Char 的厨房，可制作黑暗料理并投喂角色。包含调料系统和多样菜品生成。",
   "author": "朵朵",
   "entry": "https://raw.githubusercontent.com/Yff316/char-kitchen/main/plugin.js",

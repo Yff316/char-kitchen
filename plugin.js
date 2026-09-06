@@ -2,7 +2,7 @@
 window.RochePlugin.register({
   id: "char-kitchen",
   name: "厨房",
-  version: "6.1.0",
+  version: "6.2.0",
   apps: [{
     id: "char-kitchen-home",
     name: "Char 的厨房",
@@ -65,16 +65,16 @@ window.RochePlugin.register({
         pink: { bg: "#fff2f6", ink: "#40202c", acc: "#e668a0", card: "#fff", loader: "🍣" },
       };
 
-      // 镂空图标库
+      // 镂空图标库 - 投喂已改为爱心 (Heart)
       const ICONS = {
         stove: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18"/><path d="M5 12v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/><path d="M9 5v2"/><path d="M15 5v2"/><path d="M12 4v3"/></svg>`,
         book: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>`,
-        feed: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 7c0-2.8 2.2-5 5-5s5 2.2 5 5c0 4-3 5-5 5h-2v9a2 2 0 0 1-4 0V12H7c-2.8 0-5-2.2-5-5s2.2-5 5-5 5 2.2 5 5z"/></svg>`,
+        feed: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
         custom: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`,
         set: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`
       };
 
-      /* ============ 2. 成就系统 (省略过长说明) ============ */
+      /* ============ 2. 成就系统 ============ */
       const HIDDEN_IDS = new Set(["cabinet_open", "all_theme", "reset_ach", "wipe_all", "konami", "single_ingredient", "only_spice", "big_dish", "dark_at_midnight", "reactions_all", "char_all_fed", "late_night_open", "seven_days"]);
       const ACHIEVEMENTS = {
         first_cook: { icon: "👨‍🍳", name: "第一次下厨", desc: "完成第一道菜" },
@@ -244,7 +244,7 @@ window.RochePlugin.register({
         .ck-body { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:8px 16px 20px; position:relative; scroll-behavior:smooth; }
         
         /* 镂空底栏样式 */
-        .ck-nav { height:60px; background:rgba(255,255,255,0.85); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); display:flex; border-top:1px solid rgba(0,0,0,.05); flex-shrink:0; }
+        .ck-nav { height:60px; background:rgba(255,255,255,0.85); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); display:flex; border-top:1px solid rgba(0,0,0,.05); flex-shrink:0; z-index:10; }
         .ck[data-theme=night] .ck-nav { background:rgba(35,40,66,0.85); border-top:1px solid rgba(255,255,255,.05); }
         .ck-nav button { flex:1; background:none; border:none; font-size:11px; color:#999; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 0; transition:color 0.2s; }
         .ck-nav button.on { color:var(--acc); font-weight:700; }
@@ -314,29 +314,48 @@ window.RochePlugin.register({
         .btn:disabled { opacity:.4; cursor:not-allowed; box-shadow:none; }
         .card { background:var(--card); border-radius:14px; padding:12px; margin-bottom:10px; box-shadow:0 2px 8px rgba(0,0,0,.04); }
         
-        /* 卷轴特效与书籍 */
-        .book-cover { width:110px; height:150px; border-radius:4px 14px 14px 4px; position:relative; cursor:pointer; perspective:1000px; transform-style:preserve-3d; transition:transform 0.4s ease, opacity 0.4s; box-shadow:4px 4px 15px rgba(0,0,0,0.2); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:10px; }
-        .book-cover.normal-book { background:linear-gradient(135deg, #e4c995, #c99b4a); color:#fff; border: 2px solid #b88a44; }
-        .book-cover.dark-book { background:linear-gradient(135deg, #352144, #180a22); color:#cfa5ff; border: 2px solid #4a2a6a; }
-        .book-cover .spine { position:absolute; left:0; top:0; bottom:0; width:12px; background:rgba(0,0,0,0.2); border-radius:3px 0 0 3px; border-right:1px solid rgba(255,255,255,0.1); }
-        .book-cover h3 { font-size:16px; text-shadow:1px 1px 3px rgba(0,0,0,0.6); z-index:2; margin:0; letter-spacing:1px; }
-        .book-cover:hover { transform:scale(1.05) translateY(-5px); box-shadow:4px 10px 20px rgba(0,0,0,0.3); }
-        .book-cover.open { transform:rotateY(-90deg) scale(1.1); opacity:0; pointer-events:none; }
+        /* 3D 典籍 (翻页效果) */
+        .book-scene { perspective: 1200px; width: 170px; height: 230px; cursor: pointer; margin: 0 auto; }
+        .book-obj { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.5s; }
+        .book-obj:hover { transform: translateY(-5px) rotateX(5deg); }
+        .book-scene.open .book-obj { transform: translateX(30px) rotateX(2deg); }
         
-        .scroll-list { display:flex; flex-direction:column; gap:16px; margin-top:8px; }
-        .scroll-item { position:relative; perspective:1000px; }
-        .scroll-bar { background:linear-gradient(to bottom, #dcb962, #c79a3c, #dcb962); height:40px; border-radius:20px; display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff; text-shadow:1px 1px 3px rgba(0,0,0,0.4); cursor:pointer; box-shadow:0 4px 8px rgba(0,0,0,0.2); position:relative; z-index:2; padding:0 30px; letter-spacing:1px; font-size:15px; }
-        .scroll-bar::before, .scroll-bar::after { content:''; position:absolute; top:-2px; bottom:-2px; width:16px; background:linear-gradient(to right, #6b4c30, #4a321a, #6b4c30); border-radius:4px; box-shadow:inset 0 0 4px rgba(0,0,0,0.5); }
-        .scroll-bar::before { left:-6px; }
-        .scroll-bar::after { right:-6px; }
-        .scroll-bar:hover { filter:brightness(1.1); }
+        .book-cover-front { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transform-origin: left center; transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1); transform-style: preserve-3d; z-index: 3; border-radius: 4px 12px 12px 4px; box-shadow: inset 4px 0 10px rgba(0,0,0,0.1), 8px 8px 15px rgba(0,0,0,0.4); display:flex; flex-direction:column; justify-content:center; align-items:center; }
+        .book-scene.open .book-cover-front { transform: rotateY(-150deg); box-shadow: none; }
         
-        .scroll-paper { background:linear-gradient(to bottom, #fffaf0, #f8ecc9); border:1px solid #dcb; border-top:none; margin:0 14px; padding:0 16px; max-height:0; overflow:hidden; opacity:0; transform-origin:top; transform:scaleY(0); transition:max-height 0.5s ease, padding 0.5s ease, opacity 0.4s ease, transform 0.5s ease; box-shadow:inset 0 0 15px rgba(0,0,0,0.05), 0 6px 15px rgba(0,0,0,0.15); color:#4a3623; border-radius:0 0 8px 8px; }
-        .scroll-item.open .scroll-paper { max-height:600px; padding:16px; opacity:1; transform:scaleY(1); border-bottom:5px solid #dcb962; }
+        .normal-theme .book-cover-front { background: linear-gradient(145deg, #8b5a2b, #5c3a18); border: 2px solid #3a1f0c; color: #f4e8c1; }
+        .normal-theme .book-spine { position: absolute; left: 0; top: 0; bottom: 0; width: 16px; background: linear-gradient(to right, rgba(255,255,255,0.2), rgba(0,0,0,0.4)); border-right: 1px solid rgba(0,0,0,0.5); border-radius: 4px 0 0 4px; }
         
-        .scroll-item.dark-scroll .scroll-bar { background:linear-gradient(to bottom, #6a4a8a, #4a2a6a, #6a4a8a); }
-        .scroll-item.dark-scroll .scroll-bar::before, .scroll-item.dark-scroll .scroll-bar::after { background:linear-gradient(to right, #2a1a3a, #1a0a2a, #2a1a3a); }
-        .scroll-item.dark-scroll .scroll-paper { background:linear-gradient(to bottom, #2d2633, #1e1823); border-color:#4a3a5a; color:#d8c0ff; box-shadow:inset 0 0 15px rgba(0,0,0,0.5), 0 6px 15px rgba(0,0,0,0.3); border-bottom:5px solid #6a4a8a; }
+        .dark-theme .book-cover-front { background: linear-gradient(145deg, #2a1535, #110517); border: 2px solid #1a0525; color: #cfa5ff; }
+        .dark-theme .book-spine { position: absolute; left: 0; top: 0; bottom: 0; width: 16px; background: linear-gradient(to right, rgba(255,255,255,0.1), rgba(0,0,0,0.6)); border-right: 1px solid rgba(0,0,0,0.8); border-radius: 4px 0 0 4px; }
+        
+        .book-page-stack { position: absolute; right: -4px; top: 2%; width: 96%; height: 96%; background: #fdf5e6; border-radius: 3px 10px 10px 3px; border: 1px solid #dcdcdc; z-index: 2; box-shadow: inset -5px 0 10px rgba(0,0,0,0.05); }
+        .dark-theme .book-page-stack { background: #2c2533; border-color: #1a1525; }
+
+        /* 古老卷轴样式 */
+        .scroll-list { display:flex; flex-direction:column; gap:16px; margin-top:8px; padding-bottom: 20px;}
+        .scroll-item { position:relative; perspective:1000px; z-index: 1; }
+        .scroll-item.open { z-index: 5; } /* 确保打开的卷轴在最上层 */
+        
+        .scroll-roller { position: relative; height: 46px; border-radius: 23px; background: linear-gradient(to bottom, #5c3a18 0%, #8b5a2b 40%, #a67c52 60%, #4a2e12 100%); box-shadow: 0 5px 10px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; color: #fdf5e6; font-weight: bold; font-size: 15px; letter-spacing:1px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); cursor: pointer; z-index: 3; border: 1px solid #3a1f0c; }
+        .scroll-roller::before, .scroll-roller::after { content: ''; position: absolute; top: -2px; bottom: -2px; width: 16px; border-radius: 6px; background: linear-gradient(to bottom, #d4af37, #aa8022, #d4af37); box-shadow: inset 0 0 5px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.5); border: 1px solid #6b4c1a; }
+        .scroll-roller::before { left: -6px; }
+        .scroll-roller::after { right: -6px; }
+        
+        .scroll-ribbon { position: absolute; left: 50%; transform: translateX(-50%); width: 14px; height: 100%; background: linear-gradient(to right, #8a2a2a, #aa3a3a, #8a2a2a); box-shadow: 0 0 5px rgba(0,0,0,0.6); transition: opacity 0.3s; z-index:4;}
+        .scroll-item.open .scroll-ribbon { opacity: 0; }
+        
+        .scroll-paper-wrap { margin: 0 16px; perspective: 1000px; position: relative; top: -8px; z-index: 2; }
+        .scroll-paper { background: linear-gradient(135deg, #f0e2c8, #dcb98a 50%, #c49c66); border: 1px solid #8b5a2b; border-top: none; border-radius: 0 0 6px 6px; max-height: 0; opacity: 0; overflow: hidden; transform-origin: top; transform: rotateX(-90deg); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: inset 0 0 20px rgba(100,60,20,0.3), 0 12px 20px rgba(0,0,0,0.4); color: #4a2e12; position: relative; padding: 0 16px; }
+        .scroll-paper::after { content:''; display:block; position:absolute; bottom:0; left:0; width:100%; height:8px; background: linear-gradient(to bottom, #5c3a18, #3a1f0c); border-top:1px solid #8b5a2b; }
+        .scroll-item.open .scroll-paper { max-height: 800px; padding: 20px 16px 24px; opacity: 1; transform: rotateX(0deg); }
+
+        /* 黑暗卷轴 */
+        .scroll-item.dark-scroll .scroll-roller { background: linear-gradient(to bottom, #1a1525 0%, #352144 40%, #4a2a6a 60%, #110517 100%); border-color: #000; color: #d8c0ff; text-shadow: 0 0 5px rgba(200,160,255,0.5); }
+        .scroll-item.dark-scroll .scroll-roller::before, .scroll-item.dark-scroll .scroll-roller::after { background: linear-gradient(to bottom, #6a4a8a, #4a2a6a, #2a1a3a); border-color: #1a0525; }
+        .scroll-item.dark-scroll .scroll-ribbon { background: linear-gradient(to right, #111, #333, #111); }
+        .scroll-item.dark-scroll .scroll-paper { background: linear-gradient(135deg, #2b2233, #1e1624 50%, #150e1a); border-color: #4a2a6a; color: #e4c9ff; box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 12px 20px rgba(0,0,0,0.6); }
+        .scroll-item.dark-scroll .scroll-paper::after { background: linear-gradient(to bottom, #1a0a2a, #000); border-top-color: #4a2a6a; }
         
         .dish-emo { font-size:26px; letter-spacing:2px; line-height:30px; }
         .dish-name { font-weight:700; font-size:15px; margin:4px 0; }
@@ -428,7 +447,7 @@ window.RochePlugin.register({
           b.classList.toggle("on", b.dataset.t === S.tab);
           b.onclick = () => { 
             S.tab = b.dataset.t; 
-            if (S.tab === "book") S.subBook = null; // 每次点开菜谱都回到书架
+            if (S.tab === "book") S.subBook = null; // 每次点开菜谱都回到书架总览
             render(); 
           };
         });
@@ -938,9 +957,9 @@ window.RochePlugin.register({
         S.tab = "book"; S.subBook = null; render();
       }
 
-      /* ---------- 菜谱（书与卷轴） ---------- */
+      /* ---------- 菜谱（3D书与卷轴） ---------- */
       function renderBook(el) {
-        // 如果处于书架总览状态（普通分类）
+        // 1. 书架总览状态（显示两本大书）
         if (S.bookTab === "all" && !S.subBook) {
           const normalCount = S.recipes.filter(r => !r.dark).length;
           const darkCount = S.recipes.filter(r => r.dark).length;
@@ -948,81 +967,115 @@ window.RochePlugin.register({
           el.innerHTML = `
             <div class="tab-bar">
               <button class="${S.bookTab === "all" ? "on" : ""}" data-bt="all">📖 分类书架</button>
-              <button class="${S.bookTab === "starred" ? "on" : ""}" data-bt="starred">🌟 收藏</button>
+              <button class="${S.bookTab === "starred" ? "on" : ""}" data-bt="starred">🌟 收藏的卷轴</button>
             </div>
-            <div style="display:flex; gap:24px; justify-content:center; padding: 40px 10px; flex-wrap:wrap;">
-              <div class="book-cover normal-book" data-book="normal">
-                <div class="spine"></div>
-                <h3>常规菜谱</h3>
-                <div style="font-size:11px; margin-top:8px; opacity:0.8;">共 ${normalCount} 道</div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:40px; padding:30px 0;">
+              
+              <!-- 3D 常规菜谱书 -->
+              <div class="book-scene" data-book="normal">
+                <div class="book-obj normal-theme">
+                  <div class="book-page-stack"></div>
+                  <div class="book-cover-front">
+                    <div class="book-spine"></div>
+                    <div style="padding:40px 10px; text-align:center;">
+                      <div style="font-size:36px; margin-bottom:12px; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));">📖</div>
+                      <h3 style="margin:0; font-size:20px; letter-spacing:2px; text-shadow:1px 1px 3px rgba(0,0,0,0.6);">常规菜谱</h3>
+                      <div style="font-size:12px; margin-top:12px; opacity:0.8;">收录 ${normalCount} 卷</div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div class="book-cover dark-book" data-book="dark">
-                <div class="spine"></div>
-                <h3>黑暗料理</h3>
-                <div style="font-size:11px; margin-top:8px; opacity:0.8;">共 ${darkCount} 道</div>
+              
+              <!-- 3D 黑暗料理书 -->
+              <div class="book-scene" data-book="dark">
+                <div class="book-obj dark-theme">
+                  <div class="book-page-stack"></div>
+                  <div class="book-cover-front">
+                    <div class="book-spine"></div>
+                    <div style="padding:40px 10px; text-align:center;">
+                      <div style="font-size:36px; margin-bottom:12px; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.8));">☠️</div>
+                      <h3 style="margin:0; font-size:20px; letter-spacing:2px; text-shadow:1px 1px 5px rgba(0,0,0,0.8);">黑暗料理</h3>
+                      <div style="font-size:12px; margin-top:12px; opacity:0.8;">封印 ${darkCount} 卷</div>
+                    </div>
+                  </div>
+                </div>
               </div>
+
             </div>
-            <div style="text-align:center; color:#888; font-size:12px; margin-top:20px;">点击书本翻开你的菜谱典籍</div>
+            <div style="text-align:center; color:#888; font-size:12px; margin-bottom:20px;">点击书本，翻阅你的典籍</div>
           `;
           
-          el.querySelectorAll(".book-cover").forEach(b => {
+          // 书本点击翻开动画
+          el.querySelectorAll(".book-scene").forEach(b => {
             b.onclick = () => {
               b.classList.add("open");
-              setTimeout(() => { S.subBook = b.dataset.book; render(); }, 400);
+              setTimeout(() => { S.subBook = b.dataset.book; render(); }, 650); // 等待翻页动画完成后进入子页面
             };
           });
           el.querySelectorAll("[data-bt]").forEach(b => b.onclick = () => { S.bookTab = b.dataset.bt; S.subBook = null; render(); });
           return;
         }
 
-        // 渲染卷轴列表状态
+        // 2. 卷轴列表状态（进入了某一本书内，或是直接查看收藏）
         let list = [];
         let title = "菜谱";
         if (S.bookTab === "starred") {
           list = S.recipes.filter(r => r.starred);
-          title = "🌟 收藏的卷轴";
+          title = "🌟 被珍藏的卷轴";
         } else {
           list = S.recipes.filter(r => (S.subBook === "dark" ? r.dark : !r.dark));
-          title = S.subBook === "dark" ? "☠️ 黑暗料理典籍" : "📖 常规菜谱典籍";
+          title = S.subBook === "dark" ? "☠️ 黑暗禁忌之卷" : "📖 传世美味之卷";
         }
 
         el.innerHTML = `
           <div class="tab-bar">
             <button class="${S.bookTab === "all" ? "on" : ""}" data-bt="all">📖 分类书架</button>
-            <button class="${S.bookTab === "starred" ? "on" : ""}" data-bt="starred">🌟 收藏</button>
+            <button class="${S.bookTab === "starred" ? "on" : ""}" data-bt="starred">🌟 收藏的卷轴</button>
           </div>
-          ${S.bookTab === "all" ? `<button class="btn ghost" id="backBtn" style="margin-bottom:12px;">◀ 合上书本</button>` : ""}
-          <div style="font-weight:bold; margin-bottom: 12px; color:var(--ink);">${title} (${list.length})</div>
+          ${S.bookTab === "all" ? `<button class="btn ghost" id="backBtn" style="margin-bottom:16px; width:100%; border:1px dashed var(--acc);">◀ 合上书本，返回书架</button>` : ""}
+          <div style="font-weight:bold; margin-bottom: 16px; color:var(--ink); font-size:15px; text-align:center;">${title} (${list.length})</div>
           
           <div class="scroll-list">
             ${list.length ? list.map(r => `
               <div class="scroll-item ${r.dark ? 'dark-scroll' : ''}">
-                <div class="scroll-bar">
-                  ${r.dark ? '☠️ ' : ''}${r.name}
+                
+                <!-- 卷轴棍 -->
+                <div class="scroll-roller">
+                  <div class="scroll-ribbon"></div>
+                  <span style="z-index:2; position:relative;">${r.dark ? '☠️ ' : ''}${r.name}</span>
                 </div>
-                <div class="scroll-paper">
-                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <div class="dish-emo" style="display:flex;flex-wrap:wrap;gap:2px;">
-                      ${renderEmoList(r.emojis, 26)}
-                      ${r.spices?.length ? "<span style='margin:0 4px;opacity:0.5;'>·</span>" + [...new Set(r.spices)].join("") : ""}
+                
+                <!-- 展开的纸张 -->
+                <div class="scroll-paper-wrap">
+                  <div class="scroll-paper">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                      <div class="dish-emo" style="display:flex;flex-wrap:wrap;gap:2px;">
+                        ${renderEmoList(r.emojis, 26)}
+                        ${r.spices?.length ? "<span style='margin:0 4px;opacity:0.5;'>·</span>" + [...new Set(r.spices)].join("") : ""}
+                      </div>
+                      <span style="cursor:pointer; font-size:22px; filter:drop-shadow(0 2px 2px rgba(0,0,0,0.2));" data-act="star" data-id="${r.id}">${r.starred ? "🌟" : "☆"}</span>
                     </div>
-                    <span style="cursor:pointer;font-size:18px;" data-act="star" data-id="${r.id}">${r.starred ? "🌟" : "☆"}</span>
-                  </div>
-                  <div style="font-size:13px;opacity:.85;margin-bottom:8px;line-height:1.4;">${r.desc || ""}</div>
-                  <div style="margin-bottom:8px;">
-                    <span class="tag">${r.fire === 0 ? "🍽 冷调" : ("🍳 " + (POTS.find(p => p.id === r.pot)?.name || "锅"))}</span> 
-                    ${r.fire > 0 ? `<span class="tag">🔥 ${["熄", "小", "中", "中大", "猛"][r.fire]}火</span>` : ""}
-                    <span class="tag">味 ${r.taste}</span><span class="tag">感 ${r.texture}</span><span class="tag">氛 ${r.vibe}</span>
-                  </div>
-                  ${r.effect ? `<div style="font-size:12px;color:var(--acc);margin-bottom:12px;">✨ ${r.effect}</div>` : ""}
-                  <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                    <button class="btn" style="flex:1;" data-act="feed" data-id="${r.id}">🥄 投喂</button>
-                    <button class="btn ghost" style="flex:1;" data-act="gift" data-id="${r.id}">🎁 送</button>
-                    <button class="btn ghost" style="color:#d33;border-color:#d33;" data-act="del" data-id="${r.id}">删除</button>
+                    
+                    <div style="font-size:14px; opacity:0.9; margin-bottom:12px; line-height:1.5; font-weight:500;">${r.desc || ""}</div>
+                    
+                    <div style="margin-bottom:12px;">
+                      <span class="tag">${r.fire === 0 ? "🍽 冷调" : ("🍳 " + (POTS.find(p => p.id === r.pot)?.name || "锅"))}</span> 
+                      ${r.fire > 0 ? `<span class="tag">🔥 ${["熄", "小", "中", "中大", "猛"][r.fire]}火</span>` : ""}
+                      <span class="tag">味 ${r.taste}</span><span class="tag">感 ${r.texture}</span><span class="tag">氛 ${r.vibe}</span>
+                    </div>
+                    
+                    ${r.effect ? `<div style="font-size:13px; color:var(--acc); margin-bottom:16px; font-weight:bold;">✨ ${r.effect}</div>` : ""}
+                    
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                      <button class="btn" style="flex:1; box-shadow:0 4px 6px rgba(0,0,0,0.2);" data-act="feed" data-id="${r.id}">🥄 投喂</button>
+                      <button class="btn ghost" style="flex:1;" data-act="gift" data-id="${r.id}">🎁 赠送</button>
+                      <button class="btn ghost" style="flex:0 0 auto; padding:9px 12px; color:#d33; border-color:transparent;" data-act="del" data-id="${r.id}">焚毁</button>
+                    </div>
                   </div>
                 </div>
+
               </div>
-            `).join("") : `<div style="text-align:center;color:#aaa;padding:40px;">这里空空如也，快去厨房研制新菜吧</div>`}
+            `).join("") : `<div style="text-align:center; color:#aaa; padding:50px 20px; font-size:13px; line-height:1.6;">空空如也...<br>这本厚重的典籍在等待着你书写新的历史。</div>`}
           </div>
         `;
 
@@ -1030,12 +1083,13 @@ window.RochePlugin.register({
           el.querySelector("#backBtn").onclick = () => { S.subBook = null; render(); };
         }
         
-        el.querySelectorAll(".scroll-bar").forEach(b => {
+        // 点击卷轴棍展开纸张
+        el.querySelectorAll(".scroll-roller").forEach(b => {
           b.onclick = () => {
-            const parent = b.parentElement;
-            const isOpen = parent.classList.contains("open");
-            el.querySelectorAll(".scroll-item").forEach(i => i.classList.remove("open"));
-            if (!isOpen) parent.classList.add("open");
+            const item = b.closest(".scroll-item");
+            const isOpen = item.classList.contains("open");
+            el.querySelectorAll(".scroll-item").forEach(i => i.classList.remove("open")); // 收起其他的
+            if (!isOpen) item.classList.add("open"); // 展开当前的
           };
         });
         
@@ -1045,7 +1099,10 @@ window.RochePlugin.register({
           e.stopPropagation();
           const r = S.recipes.find(x => x.id === b.dataset.id); if (!r) return;
           const a = b.dataset.act;
-          if (a === "del") { S.recipes = S.recipes.filter(x => x.id !== r.id); await roche.storage.set("recipes", S.recipes); render(); }
+          if (a === "del") { 
+            if(!await roche.ui.confirm({title:"焚毁卷轴", message:`确定要销毁【${r.name}】的配方吗？`})) return;
+            S.recipes = S.recipes.filter(x => x.id !== r.id); await roche.storage.set("recipes", S.recipes); render(); 
+          }
           else if (a === "feed") { S.pendingDish = r; S.tab = "feed"; S.feedTab = "feedChar"; render(); }
           else if (a === "gift") { giftToChar(r); }
           else if (a === "star") { r.starred = !r.starred; await roche.storage.set("recipes", S.recipes); render(); }

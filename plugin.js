@@ -420,7 +420,7 @@ window.RochePlugin.register({
       container.innerHTML = `
         <div class="ck" data-theme="${S.theme}">
           <div class="ck-top">
-            <div>🍳 Char 的厨房${isLateNight ? '<span class="midnight-tag">🌙 深夜食堂</span>' : ''}</div>
+            <div>🍳 user 的厨房${isLateNight ? '<span class="midnight-tag">🌙 深夜食堂</span>' : ''}</div>
             <button class="ck-close">×</button>
           </div>
           <div class="ck-body" id="ckBody"></div>

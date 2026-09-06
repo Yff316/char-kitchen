@@ -5,7 +5,7 @@ window.RochePlugin.register({
   version: "6.2.0",
   apps: [{
     id: "char-kitchen-home",
-    name: "Char 的厨房",
+    name: "user 的厨房",
     icon: "restaurant",
     async mount(container, roche) {
 

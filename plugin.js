@@ -1,11 +1,11 @@
 // plugin.js
 window.RochePlugin.register({
-  id: "char-kitchen",
-  name: "厨房",
-  version: "6.2.0",
+  id: "char-kitchen", 
+  name: "User 的厨房",
+  version: "6.3.0",
   apps: [{
     id: "char-kitchen-home",
-    name: "user 的厨房",
+    name: "User 的厨房",
     icon: "restaurant",
     async mount(container, roche) {
 
@@ -65,7 +65,7 @@ window.RochePlugin.register({
         pink: { bg: "#fff2f6", ink: "#40202c", acc: "#e668a0", card: "#fff", loader: "🍣" },
       };
 
-      // 镂空图标库 - 投喂已改为爱心 (Heart)
+      // 镂空图标库 - 投喂使用爱心 (Heart)
       const ICONS = {
         stove: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18"/><path d="M5 12v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/><path d="M9 5v2"/><path d="M15 5v2"/><path d="M12 4v3"/></svg>`,
         book: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>`,
@@ -234,6 +234,14 @@ window.RochePlugin.register({
         }
       }
 
+      // 动态判断烹饪动作动词
+      function getCookVerb(fire, pot) {
+        if (fire === 0) return "调制";
+        if (pot === "pressure") return "炖";
+        if (pot === "flat") return "煎";
+        return "炒";
+      }
+
       /* ============ 5. CSS 样式 ============ */
       const style = document.createElement("style");
       style.setAttribute("data-plugin", "char-kitchen");
@@ -314,13 +322,14 @@ window.RochePlugin.register({
         .btn:disabled { opacity:.4; cursor:not-allowed; box-shadow:none; }
         .card { background:var(--card); border-radius:14px; padding:12px; margin-bottom:10px; box-shadow:0 2px 8px rgba(0,0,0,.04); }
         
-        /* 3D 典籍 (翻页效果) */
+        /* 3D 典籍 (向左侧真实翻开效果) */
         .book-scene { perspective: 1200px; width: 170px; height: 230px; cursor: pointer; margin: 0 auto; }
         .book-obj { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.5s; }
         .book-obj:hover { transform: translateY(-5px) rotateX(5deg); }
         .book-scene.open .book-obj { transform: translateX(30px) rotateX(2deg); }
         
         .book-cover-front { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transform-origin: left center; transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1); transform-style: preserve-3d; z-index: 3; border-radius: 4px 12px 12px 4px; box-shadow: inset 4px 0 10px rgba(0,0,0,0.1), 8px 8px 15px rgba(0,0,0,0.4); display:flex; flex-direction:column; justify-content:center; align-items:center; }
+        /* 真实的翻页：绕 Y 轴向左旋转 */
         .book-scene.open .book-cover-front { transform: rotateY(-150deg); box-shadow: none; }
         
         .normal-theme .book-cover-front { background: linear-gradient(145deg, #8b5a2b, #5c3a18); border: 2px solid #3a1f0c; color: #f4e8c1; }
@@ -420,7 +429,7 @@ window.RochePlugin.register({
       container.innerHTML = `
         <div class="ck" data-theme="${S.theme}">
           <div class="ck-top">
-            <div>🍳 user 的厨房${isLateNight ? '<span class="midnight-tag">🌙 深夜食堂</span>' : ''}</div>
+            <div>🍳 User 的厨房${isLateNight ? '<span class="midnight-tag">🌙 深夜食堂</span>' : ''}</div>
             <button class="ck-close">×</button>
           </div>
           <div class="ck-body" id="ckBody"></div>
@@ -1036,7 +1045,9 @@ window.RochePlugin.register({
           <div style="font-weight:bold; margin-bottom: 16px; color:var(--ink); font-size:15px; text-align:center;">${title} (${list.length})</div>
           
           <div class="scroll-list">
-            ${list.length ? list.map(r => `
+            ${list.length ? list.map(r => {
+              const verb = getCookVerb(r.fire, r.pot);
+              return `
               <div class="scroll-item ${r.dark ? 'dark-scroll' : ''}">
                 
                 <!-- 卷轴棍 -->
@@ -1068,14 +1079,15 @@ window.RochePlugin.register({
                     
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
                       <button class="btn" style="flex:1; box-shadow:0 4px 6px rgba(0,0,0,0.2);" data-act="feed" data-id="${r.id}">🥄 投喂</button>
-                      <button class="btn ghost" style="flex:1;" data-act="gift" data-id="${r.id}">🎁 赠送</button>
+                      <button class="btn ghost" style="flex:1;" data-act="gift" data-id="${r.id}">🎁 在厨房${verb}</button>
                       <button class="btn ghost" style="flex:0 0 auto; padding:9px 12px; color:#d33; border-color:transparent;" data-act="del" data-id="${r.id}">焚毁</button>
                     </div>
                   </div>
                 </div>
 
               </div>
-            `).join("") : `<div style="text-align:center; color:#aaa; padding:50px 20px; font-size:13px; line-height:1.6;">空空如也...<br>这本厚重的典籍在等待着你书写新的历史。</div>`}
+            `}).join("") : `<div style="text-align:center; color:#aaa; padding:50px 20px; font-size:13px; line-height:1.6;">空空如也...
+<br>这本厚重的典籍在等待着你书写新的历史。</div>`}
           </div>
         `;
 
@@ -1112,17 +1124,20 @@ window.RochePlugin.register({
       async function giftToChar(dish) {
         let chars = []; try { chars = await roche.character.list(); } catch {}
         if (!chars.length) { roche.ui.toast("没有 Char"); return; }
-        const pick = await roche.ui.select?.({ title: "送给谁？", options: chars.map(c => ({ label: c.handle || c.name, value: c.id })) });
+        const pick = await roche.ui.select?.({ title: "端给哪位 Char？", options: chars.map(c => ({ label: c.handle || c.name, value: c.id })) });
         const target = chars.find(c => c.id === (pick?.value || pick)) || chars[0];
-        const text = `🎁 ${target.handle || target.name},送你【${dish.name}】\n${dish.emojis.map(e => e.startsWith("::") ? "[图片食材]" : e).join(" ")}\n${dish.desc || ""}`;
+        
+        const verb = getCookVerb(dish.fire, dish.pot);
+        const text = `在厨房${verb}了一道【${dish.name}】递给${target.handle || target.name}\n${dish.emojis.map(e => e.startsWith("::") ? "[图片食材]" : e).join(" ")}\n${dish.desc || ""}`;
+        
         try {
           if (roche.chat?.send) await roche.chat.send({ conversationId: target.conversationId, text });
           else if (roche.character?.sendMessage) await roche.character.sendMessage({ charId: target.id, text });
           else throw 0;
-          roche.ui.toast("已发出 💌");
+          roche.ui.toast("已端给 Ta 啦 🍽️");
           S.giftCount = (S.giftCount || 0) + 1; await roche.storage.set("giftCount", S.giftCount);
           await unlock("gift_first"); if (S.giftCount >= 10) await unlock("gift_ten");
-        } catch { navigator.clipboard?.writeText(text); roche.ui.toast("已复制到剪贴板"); }
+        } catch { navigator.clipboard?.writeText(text); roche.ui.toast("已复制到剪贴板，快去发给 Ta 吧"); }
       }
 
       /* ---------- 投喂 (双模式) ---------- */
@@ -1300,7 +1315,7 @@ window.RochePlugin.register({
         };
 
         el.querySelector("#btnRefuseFeed").onclick = () => startChat("婉拒了");
-        el.querySelector("#btnTasteFeed").onclick = () => startChat("尝了一口");
+        el.querySelector("#btnTasteFeed").onclick = () => startChat("尝一口");
         el.querySelector("#btnAcceptFeed").onclick = () => startChat("开心地吃掉了");
       }
 
@@ -1374,7 +1389,7 @@ window.RochePlugin.register({
             try {
               await roche.memory.write({
                 conversationId: char.conversationId, summaryText: edited, who: [char.handle || char.name, "user"],
-                action: edited, when: "被Char投喂", where: "Char 的厨房", source: "plugin:char-kitchen"
+                action: edited, when: "被Char投喂", where: "User 的厨房", source: "plugin:char-kitchen"
               });
               roche.ui.toast("✅ 已写入记忆库");
             } catch { roche.ui.toast("写入失败"); }
@@ -1533,7 +1548,7 @@ window.RochePlugin.register({
             try {
               await roche.memory.write({
                 conversationId: char.conversationId, summaryText: edited, who: [char.handle || char.name, "user"],
-                action: edited, when: "厨房投喂", where: "Char 的厨房", source: "plugin:char-kitchen"
+                action: edited, when: "厨房投喂", where: "User 的厨房", source: "plugin:char-kitchen"
               });
               roche.ui.toast("✅ 已写入记忆库");
               S.memoryCount++; await roche.storage.set("memoryCount", S.memoryCount);
